@@ -46,6 +46,10 @@ Digit = [0-9]
 WhiteSpace = {LineTerminator} | {Identation}
 Identifier = {Letter} ({Letter}|{Digit})*
 IntegerConstant = {Digit}+
+StringConstant = "\"" ([^\"])* "\""
+//macros
+Print = "print"
+
 
 %%
 
@@ -53,6 +57,9 @@ IntegerConstant = {Digit}+
 /* keywords */
 
 <YYINITIAL> {
+  /* keywords */
+  {Print}                                   { return symbol(ParserSym.PRINT); }
+
   /* identifiers */
   {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }
   /* Constants */
@@ -69,8 +76,16 @@ IntegerConstant = {Digit}+
 
   /* whitespace */
   {WhiteSpace}                   { /* ignore */ }
-}
 
+  {StringConstant}                          {
+        String value = yytext().substring(1, yytext().length() - 1);
+        if (value.length() > MAX_LENGTH) {
+            throw new InvalidLengthException("La longitud del STRING "+value +" supera lo permitido.");
+        }
+        return symbol(ParserSym.STRING_CONSTANT, value);
+  }
+}
 
 /* error fallback */
 [^]                              { throw new UnknownCharacterException(yytext()); }
+
