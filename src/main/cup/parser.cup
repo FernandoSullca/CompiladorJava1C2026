@@ -19,6 +19,8 @@ terminal PRINT;
 terminal STRING_CONSTANT;
 
 // Non Terminals
+non terminal program;
+non terminal sentences;
 non terminal sentence;
 non terminal assignment;
 non terminal expression;
@@ -29,9 +31,18 @@ non terminal print_line;
 
 
 // Start Symbol Definition
-start with sentence;
+start with program;
 
-sentence ::= assignment {: System.out.println("End"); :};
+program ::= sentences {: System.out.println("End"); :};
+
+sentences ::= sentences sentence
+            | sentence
+            ;
+
+sentence ::= assignment
+           | print_sentence
+           ;
+
 assignment ::= IDENTIFIER ASSIG expression {: System.out.println("Assignment"); :};
 expression ::= expression PLUS term {: System.out.println("+"); :};
 expression ::= expression SUB term {: System.out.println("-"); :};
@@ -42,8 +53,6 @@ term ::= factor {: System.out.println("Term = factor"); :};
 factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); :};
 factor ::= INTEGER_CONSTANT:constant {: System.out.println("Constant: " + constant ); :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
-
-sentence ::= print_sentence {: System.out.println("PRINT"); :};
 print_sentence ::= PRINT OPEN_BRACKET print_line CLOSE_BRACKET {: System.out.println("Bloque WRITE/PRINT"); :};
 print_line ::= IDENTIFIER:id {: System.out.println("Print: " + id); :};
 print_line ::= STRING_CONSTANT:constant {:
