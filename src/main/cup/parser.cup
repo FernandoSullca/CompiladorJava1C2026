@@ -2,8 +2,15 @@ package lyc.compiler;
 
 import java_cup.runtime.*;
 
+import java.util.ArrayList;
+import lyc.compiler.simboleTable.SymbolTable;
+
 class Parser;
 
+action code {:
+public ArrayList<String> var = new ArrayList<>();
+SymbolTable symTable = SymbolTable.getSymbolTable();
+:};
 
 // Terminals
 terminal ASSIG;
@@ -53,9 +60,12 @@ term ::= factor {: System.out.println("Term = factor"); :};
 factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); :};
 factor ::= INTEGER_CONSTANT:constant {: System.out.println("Constant: " + constant ); :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
+
+
 print_sentence ::= PRINT OPEN_BRACKET print_line CLOSE_BRACKET {: System.out.println("Bloque WRITE/PRINT"); :};
 print_line ::= IDENTIFIER:id {: System.out.println("Print: " + id); :};
 print_line ::= STRING_CONSTANT:constant {:
     System.out.println("Print: " + constant);
     String c = constant.toString();
+    symTable.insert(c,"String",c,false);
     :};
