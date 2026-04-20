@@ -18,11 +18,20 @@ terminal PLUS;
 terminal SUB;
 terminal MULT;
 terminal DIV;
+terminal MORETHAN;
+terminal MOREEQUALTHAN;
+terminal LESSTHAN;
+terminal LESSEQUALTHAN;
+terminal EQUAL;
+terminal NOTEQUAL;
 terminal OPEN_BRACKET;
 terminal CLOSE_BRACKET;
+terminal OPEN_KEY;
+terminal CLOSE_KEY;
 terminal INTEGER_CONSTANT;
 terminal IDENTIFIER;
 terminal PRINT;
+terminal WHILE;
 terminal STRING_CONSTANT;
 
 // Non Terminals
@@ -35,6 +44,7 @@ non terminal term;
 non terminal factor;
 non terminal print_sentence;
 non terminal print_line;
+non terminal while_sentence;
 
 
 // Start Symbol Definition
@@ -53,6 +63,12 @@ sentence ::= assignment
 assignment ::= IDENTIFIER ASSIG expression {: System.out.println("Assignment"); :};
 expression ::= expression PLUS term {: System.out.println("+"); :};
 expression ::= expression SUB term {: System.out.println("-"); :};
+expression ::= expression MORETHAN term {: System.out.println(">"); :};
+expression ::= expression MOREEQUALTHAN term {: System.out.println(">="); :};
+expression ::= expression LESSTHAN term {: System.out.println("<"); :};
+expression ::= expression LESSEQUALTHAN term {: System.out.println("<="); :};
+expression ::= expression EQUAL term {: System.out.println("=="); :};
+expression ::= expression NOTEQUAL term {: System.out.println("!="); :};
 expression ::= term {: System.out.println("Expression = Term"); :};
 term ::= term MULT factor {: System.out.println("*"); :};
 term ::= term DIV factor {: System.out.println("/"); :};
@@ -61,7 +77,6 @@ factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); :};
 factor ::= INTEGER_CONSTANT:constant {: System.out.println("Constant: " + constant ); :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
 
-
 print_sentence ::= PRINT OPEN_BRACKET print_line CLOSE_BRACKET {: System.out.println("Bloque WRITE/PRINT"); :};
 print_line ::= IDENTIFIER:id {: System.out.println("Print: " + id); :};
 print_line ::= STRING_CONSTANT:constant {:
@@ -69,3 +84,8 @@ print_line ::= STRING_CONSTANT:constant {:
     String c = constant.toString();
     symTable.insert(c,"String",c,false);
     :};
+
+while_sentence ::= WHILE OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque WHILE"); :};
+condition_line ::= expression {: System.out.println(expression); :};
+operation_line ::= OPEN_KEY operation CLOSE_KEY {: System.out.println(Bloque operacion); :};
+operation ::= sentences {: System.out.println(Bloque sentencia); :};

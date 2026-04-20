@@ -2,3 +2,9 @@ c=d*(e-21)/4
 print("HOLA")
 a = 1
 print(a)
+b = 3
+while (a > b)
+{
+    print("a es mas grande que b")
+    a = a + 1
+}

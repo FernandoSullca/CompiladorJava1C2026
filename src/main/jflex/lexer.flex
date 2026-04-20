@@ -38,8 +38,16 @@ Mult = "*"
 Sub = "-"
 Div = "/"
 Assig = "="
+MoreThan = ">"
+MoreEqualThan = ">="
+LessThan = "<"
+LessEqualThan = "<="
+Equal = "=="
+NotEqual = "!="
 OpenBracket = "("
 CloseBracket = ")"
+OpenKey = "{"
+CloseKey = "}"
 Letter = [a-zA-Z]
 Digit = [0-9]
 
@@ -49,7 +57,7 @@ IntegerConstant = {Digit}+
 StringConstant = "\"" ([^\"])* "\""
 //macros
 Print = "print"
-
+While = "while"
 
 %%
 
@@ -59,6 +67,7 @@ Print = "print"
 <YYINITIAL> {
   /* keywords */
   {Print}                                   { return symbol(ParserSym.PRINT); }
+  {While}                                   { return symbol(ParserSym.WHILE); }
 
   /* identifiers */
   {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }
@@ -71,8 +80,16 @@ Print = "print"
   {Mult}                                    { return symbol(ParserSym.MULT); }
   {Div}                                     { return symbol(ParserSym.DIV); }
   {Assig}                                   { return symbol(ParserSym.ASSIG); }
+  {MoreThan}                                { return symbol(ParserSym.MORETHAN); }
+  {MoreEqualThan}                           { return symbol(ParserSym.MOREEQUALTHAN); }
+  {LessThan}                                { return symbol(ParserSym.LESSTHAN); }
+  {LessEqualThan}                           { return symbol(ParserSym.LESSEQUALTHAN); }
+  {Equal}                                   { return symbol(ParserSym.EQUAL); }
+  {NotEqual}                                { return symbol(ParserSym.NOTEQUAL); }
   {OpenBracket}                             { return symbol(ParserSym.OPEN_BRACKET); }
   {CloseBracket}                            { return symbol(ParserSym.CLOSE_BRACKET); }
+  {OpenKey}                                 { return symbol(ParserSym.OPEN_KEY); }
+  {CloseKey}                                { return symbol(ParserSym.CLOSE_KEY); }
 
   /* whitespace */
   {WhiteSpace}                   { /* ignore */ }
