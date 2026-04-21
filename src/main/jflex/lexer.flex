@@ -55,9 +55,16 @@ WhiteSpace = {LineTerminator} | {Identation}
 Identifier = {Letter} ({Letter}|{Digit})*
 IntegerConstant = {Digit}+
 StringConstant = "\"" ([^\"])* "\""
-//macros
+
+//comments de una linea o ningun caracter, no necesita cup(gramatica)
+CommentCharacters = ([^\r\n])*
+Comment = "#+" {CommentCharacters} "+#"
+
+
+/*  reserve */
 Print = "print"
 While = "while"
+Init = "init"
 
 %%
 
@@ -65,10 +72,10 @@ While = "while"
 /* keywords */
 
 <YYINITIAL> {
-  /* keywords */
+  /*  reserve */
   {Print}                                   { return symbol(ParserSym.PRINT); }
   {While}                                   { return symbol(ParserSym.WHILE); }
-
+  {Init}                                   { return symbol(ParserSym.INIT); }
   /* identifiers */
   {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }
   /* Constants */
@@ -91,9 +98,17 @@ While = "while"
   {OpenKey}                                 { return symbol(ParserSym.OPEN_KEY); }
   {CloseKey}                                { return symbol(ParserSym.CLOSE_KEY); }
 
-  /* whitespace */
+  /* whitespace ,Comment*/
   {WhiteSpace}                   { /* ignore */ }
 
+  {Comment}                      {
+          String value = yytext().substring(1, yytext().length() - 1);;
+          if (value.indexOf('#') != -1) { //Verifico que termine con el caracter correcto
+              throw new UnknownCharacterException(yytext());
+          }
+      }
+
+  /*constants*/
   {StringConstant}                          {
         String value = yytext().substring(1, yytext().length() - 1);
         if (value.length() > MAX_LENGTH) {

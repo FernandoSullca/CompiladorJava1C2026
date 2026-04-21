@@ -1,4 +1,4 @@
-c=d*(e-21)/4
+c = d*(e-21)/4
 print("HOLA")
 a = 1
 print(a)
@@ -8,3 +8,10 @@ while (a > b)
     print("a es mas grande que b")
     a = a + 1
 }
+
+#+ Esto es un comentario +#
+
+
+init {
+}
+b = "asignacion string"

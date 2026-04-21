@@ -33,9 +33,12 @@ terminal IDENTIFIER;
 terminal PRINT;
 terminal WHILE;
 terminal STRING_CONSTANT;
+terminal INIT;
 
 // Non Terminals
 non terminal program;
+non terminal init_sentence;
+non terminal init_line;
 non terminal sentences;
 non terminal sentence;
 non terminal assignment;
@@ -60,12 +63,6 @@ sentences ::= sentences sentence
             | sentence
             ;
 
-sentence ::= assignment
-           | print_sentence
-           | while_sentence
-           ;
-
-assignment ::= IDENTIFIER ASSIG expression {: System.out.println("Assignment"); :};
 expression ::= expression PLUS term {: System.out.println("+"); :};
 expression ::= expression SUB term {: System.out.println("-"); :};
 expression ::= expression MORETHAN term {: System.out.println(">"); :};
@@ -78,10 +75,26 @@ expression ::= term {: System.out.println("Expression = Term"); :};
 term ::= term MULT factor {: System.out.println("*"); :};
 term ::= term DIV factor {: System.out.println("/"); :};
 term ::= factor {: System.out.println("Term = factor"); :};
-factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); :};
-factor ::= INTEGER_CONSTANT:constant {: System.out.println("Constant: " + constant ); :};
+factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id);
+                            String c = id.toString();
+                            symTable.insert(c,"","",true); :};
+factor ::= INTEGER_CONSTANT:constant {: System.out.println("Constant: " + constant );
+                            symTable.insert(constant.toString(),"INT",constant.toString(),false);:};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
 
+
+// Assignments
+sentence ::= assignment {: System.out.println("End"); :};
+assignment ::= IDENTIFIER:id ASSIG expression {: System.out.println("Assignment "+id+":= expression TODO");
+                 String c = id.toString();
+                 symTable.insert(c,"",c,true);:};
+
+assignment ::= IDENTIFIER:id ASSIG STRING_CONSTANT:constant {:
+                System.out.println("Assignment: "+id+":="+ constant);
+                String c = constant.toString();
+                symTable.insert(c,"STRING",c,false);:};
+
+sentence ::= print_sentence {: System.out.println("PRINT"); :};
 print_sentence ::= PRINT OPEN_BRACKET print_line CLOSE_BRACKET {: System.out.println("Bloque WRITE/PRINT"); :};
 print_line ::= IDENTIFIER:id {: System.out.println("Print: " + id); :};
 print_line ::= STRING_CONSTANT:constant {:
@@ -90,7 +103,14 @@ print_line ::= STRING_CONSTANT:constant {:
     symTable.insert(c,"String",c,false);
     :};
 
+sentence::=while_sentence  {: System.out.println("WHILE"); :};
 while_sentence ::= WHILE OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque WHILE"); :};
 condition_line ::= expression {: System.out.println("expression"); :};
 operation_line ::= OPEN_KEY operation CLOSE_KEY {: System.out.println("Bloque operacion"); :};
 operation ::= sentences {: System.out.println("Bloque sentencia"); :};
+
+
+// Init
+sentence ::= init_sentence {: System.out.println("INIT"); :};
+init_sentence ::= INIT OPEN_KEY init_line CLOSE_KEY {: System.out.println("Bloque INIT"); :};
+init_line::= {: System.out.println("Bloque init_line:declaraciones(TODO)"); :};
