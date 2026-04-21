@@ -32,4 +32,14 @@ else
     print("a es mas chico o igual a b")
 }
 
+while (var1 in [1,2,3])
+{
+   print(var1)
+}
+
+while (var1 in [1+1,2*2,3/3])
+{
+   print(var1)
+}
+
 read(b)

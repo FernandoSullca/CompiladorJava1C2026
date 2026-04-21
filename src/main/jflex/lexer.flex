@@ -52,6 +52,8 @@ Letter = [a-zA-Z]
 Digit = [0-9]
 Colon =":"
 Comma =","
+OpenArray = "["
+CloseArray = "]"
 
 WhiteSpace = {LineTerminator} | {Identation}
 Identifier = {Letter} ({Letter}|{Digit})*
@@ -73,6 +75,7 @@ Else = "else"
 String= "String"
 Float= "Float"
 Int= "Int"
+In = "in"
 %%
 
 
@@ -89,6 +92,7 @@ Int= "Int"
   {String}                                  { return symbol(ParserSym.STRING); }
   {Float}                                   { return symbol(ParserSym.FLOAT); }
   {Int}                                     { return symbol(ParserSym.INT); }
+  {In}                                      { return symbol(ParserSym.IN); }
 
   /* identifiers */
   {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }
@@ -112,7 +116,10 @@ Int= "Int"
   {OpenKey}                                 { return symbol(ParserSym.OPEN_KEY); }
   {CloseKey}                                { return symbol(ParserSym.CLOSE_KEY); }
   {Colon}                                   { return symbol(ParserSym.COLON); }
-  {Comma}                                   { return symbol(ParserSym.COMMA); }
+  {Comma}                                   { return symbol(ParserSym.COMMA); }  
+  {OpenArray}                               { return symbol(ParserSym.OPEN_ARRAY); }
+  {CloseArray}                              { return symbol(ParserSym.CLOSE_ARRAY); }
+  
   /* whitespace ,Comment*/
   {WhiteSpace}                   { /* ignore */ }
 

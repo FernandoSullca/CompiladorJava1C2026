@@ -42,6 +42,9 @@ terminal COMMA;
 terminal STRING;
 terminal FLOAT;
 terminal INT;
+terminal OPEN_ARRAY;
+terminal CLOSE_ARRAY;
+terminal IN;
 
 // Non Terminals
 non terminal program;
@@ -66,7 +69,8 @@ non terminal condition_line;
 non terminal operation;
 non terminal operation_line;
 non terminal if_sentence;
-
+non terminal especial_condition_line;
+non terminal expression_array;
 
 
 // Start Symbol Definition
@@ -131,6 +135,11 @@ condition_line ::= expression {: System.out.println("expression"); :};
 operation_line ::= OPEN_KEY operation CLOSE_KEY {: System.out.println("Bloque operacion"); :};
 operation ::= sentences {: System.out.println("Bloque sentencia"); :};
 
+//WHILE - especial
+while_sentence ::= WHILE OPEN_BRACKET especial_condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque WHILE ESPECIAL"); :};
+especial_condition_line ::= IDENTIFIER:id IN OPEN_ARRAY expression_array CLOSE_ARRAY {: System.out.println("condicion especial"); :};
+expression_array ::= expression COMMA expression_array;
+expression_array ::= expression {: System.out.println("array de expresiones"); :};
 
 // Init
 sentence ::= init_sentence {: System.out.println("INIT"); :};
