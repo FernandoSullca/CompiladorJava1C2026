@@ -70,6 +70,8 @@ Init = "init"
 If = "if"
 Else = "else"
 String= "String"
+Float= "Float"
+Int= "Int"
 %%
 
 
@@ -84,6 +86,8 @@ String= "String"
   {If}                                      { return symbol(ParserSym.IF); }
   {Else}                                    { return symbol(ParserSym.ELSE); }
   {String}                                  { return symbol(ParserSym.STRING); }
+  {Float}                                   { return symbol(ParserSym.FLOAT); }
+  {Int}                                     { return symbol(ParserSym.INT); }
 
   /* identifiers */
   {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }

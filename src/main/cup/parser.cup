@@ -39,6 +39,8 @@ terminal IF;
 terminal ELSE;
 terminal COLON;
 terminal STRING;
+terminal FLOAT;
+terminal INT;
 
 // Non Terminals
 non terminal program;
@@ -131,7 +133,8 @@ operation ::= sentences {: System.out.println("Bloque sentencia"); :};
 // Init
 sentence ::= init_sentence {: System.out.println("INIT"); :};
 init_sentence ::= INIT OPEN_KEY init_line CLOSE_KEY {: System.out.println("Bloque INIT"); :};
-init_line::= init_var COLON init_type {: System.out.println("Identificador"); :};
+init_line ::= init_var COLON init_type init_line {: System.out.println("Linea declaracion de variables INIT"); :};
+init_line ::= init_var COLON init_type {: System.out.println("identificador_Final : Type"); :};
 
 init_var ::=IDENTIFIER: id {:
             varType.add(id.toString());
@@ -147,6 +150,27 @@ init_type ::= STRING {: System.out.println("STRING");
     }
     varType.clear();
 :};
+
+init_type ::= FLOAT {: System.out.println("FLOAT");
+    for (String v: varType){
+        if(symTable.exists(v)){
+           System.out.println("La variable \""+v+"\" Ya fue declarada.");
+        }
+        symTable.insert(v,"FLOAT","",true);
+    }
+    varType.clear();
+:};
+
+init_type ::= INT {: System.out.println("INT");
+    for (String v: varType){
+        if(symTable.exists(v)){
+           System.out.println("La variable \""+v+"\" Ya fue declarada.");
+        }
+        symTable.insert(v,"INT","",true);
+    }
+    varType.clear();
+:};
+
 
 
 //IF
