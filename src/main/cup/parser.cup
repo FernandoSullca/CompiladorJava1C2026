@@ -8,7 +8,7 @@ import lyc.compiler.simboleTable.SymbolTable;
 class Parser;
 
 action code {:
-public ArrayList<String> var = new ArrayList<>();
+public ArrayList<String> varType = new ArrayList<>();
 SymbolTable symTable = SymbolTable.getSymbolTable();
 :};
 
@@ -37,11 +37,16 @@ terminal STRING_CONSTANT;
 terminal INIT;
 terminal IF;
 terminal ELSE;
+terminal COLON;
+terminal STRING;
 
 // Non Terminals
 non terminal program;
 non terminal init_sentence;
 non terminal init_line;
+non terminal init_type;
+non terminal init_var;
+
 non terminal sentences;
 non terminal sentence;
 non terminal assignment;
@@ -126,7 +131,23 @@ operation ::= sentences {: System.out.println("Bloque sentencia"); :};
 // Init
 sentence ::= init_sentence {: System.out.println("INIT"); :};
 init_sentence ::= INIT OPEN_KEY init_line CLOSE_KEY {: System.out.println("Bloque INIT"); :};
-init_line::= {: System.out.println("Bloque init_line:declaraciones(TODO)"); :};
+init_line::= init_var COLON init_type {: System.out.println("Identificador"); :};
+
+init_var ::=IDENTIFIER: id {:
+            varType.add(id.toString());
+            System.out.println("Variable: "+id.toString());
+        :};
+
+init_type ::= STRING {: System.out.println("STRING");
+    for (String v: varType){
+        if(symTable.exists(v)){
+           System.out.println("La variable \""+v+"\" Ya fue declarada.");
+        }
+        symTable.insert(v,"STRING","",true);
+    }
+    varType.clear();
+:};
+
 
 //IF
 sentence ::= if_sentence {: System.out.println("IF"); :};

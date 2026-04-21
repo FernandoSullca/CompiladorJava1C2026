@@ -13,7 +13,7 @@ while (a > b)
 
 
 init {
-
+    p3 : String
 }
 b = "asignacion string"
 x = 27 - c

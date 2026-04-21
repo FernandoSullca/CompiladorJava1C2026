@@ -50,6 +50,7 @@ OpenKey = "{"
 CloseKey = "}"
 Letter = [a-zA-Z]
 Digit = [0-9]
+Colon =":"
 
 WhiteSpace = {LineTerminator} | {Identation}
 Identifier = {Letter} ({Letter}|{Digit})*
@@ -68,7 +69,7 @@ While = "while"
 Init = "init"
 If = "if"
 Else = "else"
-
+String= "String"
 %%
 
 
@@ -82,6 +83,7 @@ Else = "else"
   {Init}                                    { return symbol(ParserSym.INIT); }
   {If}                                      { return symbol(ParserSym.IF); }
   {Else}                                    { return symbol(ParserSym.ELSE); }
+  {String}                                  { return symbol(ParserSym.STRING); }
 
   /* identifiers */
   {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }
@@ -104,7 +106,7 @@ Else = "else"
   {CloseBracket}                            { return symbol(ParserSym.CLOSE_BRACKET); }
   {OpenKey}                                 { return symbol(ParserSym.OPEN_KEY); }
   {CloseKey}                                { return symbol(ParserSym.CLOSE_KEY); }
-
+  {Colon}                                   { return symbol(ParserSym.COLON); }
   /* whitespace ,Comment*/
   {WhiteSpace}                   { /* ignore */ }
 
