@@ -31,6 +31,7 @@ terminal CLOSE_KEY;
 terminal INTEGER_CONSTANT;
 terminal IDENTIFIER;
 terminal PRINT;
+terminal READ;
 terminal WHILE;
 terminal STRING_CONSTANT;
 terminal INIT;
@@ -49,6 +50,8 @@ non terminal term;
 non terminal factor;
 non terminal print_sentence;
 non terminal print_line;
+non terminal read_sentence;
+non terminal read_line;
 non terminal while_sentence;
 non terminal condition_line;
 non terminal operation;
@@ -97,6 +100,7 @@ assignment ::= IDENTIFIER:id ASSIG STRING_CONSTANT:constant {:
                 String c = constant.toString();
                 symTable.insert(c,"STRING",c,false);:};
 
+// WRITE
 sentence ::= print_sentence {: System.out.println("PRINT"); :};
 print_sentence ::= PRINT OPEN_BRACKET print_line CLOSE_BRACKET {: System.out.println("Bloque WRITE/PRINT"); :};
 print_line ::= IDENTIFIER:id {: System.out.println("Print: " + id); :};
@@ -105,6 +109,11 @@ print_line ::= STRING_CONSTANT:constant {:
     String c = constant.toString();
     symTable.insert(c,"String",c,false);
     :};
+
+// READ
+sentence ::= read_sentence {: System.out.println("READ"); :};
+read_sentence ::= READ OPEN_BRACKET read_line CLOSE_BRACKET {: System.out.println("Bloque READ"); :};
+read_line ::= IDENTIFIER:id {: System.out.println("Read: " + id); :};
 
 //WHILE
 sentence::=while_sentence  {: System.out.println("WHILE"); :};

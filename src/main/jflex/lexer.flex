@@ -63,6 +63,7 @@ Comment = "#+" {CommentCharacters} "+#"
 
 /*  reserve */
 Print = "print"
+Read = "read"
 While = "while"
 Init = "init"
 If = "if"
@@ -76,6 +77,7 @@ Else = "else"
 <YYINITIAL> {
   /*  reserve */
   {Print}                                   { return symbol(ParserSym.PRINT); }
+  {Read}                                    { return symbol(ParserSym.READ); }
   {While}                                   { return symbol(ParserSym.WHILE); }
   {Init}                                    { return symbol(ParserSym.INIT); }
   {If}                                      { return symbol(ParserSym.IF); }

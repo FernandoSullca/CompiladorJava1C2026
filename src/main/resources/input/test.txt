@@ -29,3 +29,5 @@ else
 {
     print("a es mas chico o igual a b")
 }
+
+read(b)
