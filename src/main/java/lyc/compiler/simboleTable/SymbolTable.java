@@ -41,18 +41,33 @@ public class SymbolTable {
 
     @Override
     public String toString() {
-        //literalmente una tabla
-        String inicio = "┌"+"─".repeat(50)+"┬"+"─".repeat(10)+"┬"+"─".repeat(50)+"┬"+"─".repeat(10)+"┐"+"\n";
+        String inicio = "┌" + "─".repeat(50) + "┬" + "─".repeat(10) + "┬" + "─".repeat(50) + "┬" + "─".repeat(10) + "┐\n";
+        String separador = "├" + "─".repeat(50) + "┼" + "─".repeat(10) + "┼" + "─".repeat(50) + "┼" + "─".repeat(10) + "┤\n";
+        String fin = "└" + "─".repeat(50) + "┴" + "─".repeat(10) + "┴" + "─".repeat(50) + "┴" + "─".repeat(10) + "┘\n";
         String format = "│%-50s│%-10s│%-50s│%-10s│";
-        String out = inicio + String.format(format,"NAME","TYPE","VALUE","LENGTH") +"\n";
-        String separador = "├"+"─".repeat(50)+"┼"+"─".repeat(10)+"┼"+"─".repeat(50)+"┼"+"─".repeat(10)+"┤"+"\n";
-        String fin = "└"+"─".repeat(50)+"┴"+"─".repeat(10)+"┴"+"─".repeat(50)+"┴"+"─".repeat(10)+"┘"+"\n";
-        out += separador;
-        format = "│%-50s│%s│";
-        for(String k : table.keySet() ){
-            out += String.format(format,k,table.get(k)) + "\n" + separador;
+
+        StringBuilder out = new StringBuilder();
+        out.append(inicio);
+        out.append(String.format(format, "NAME", "TYPE", "VALUE", "LENGTH")).append("\n");
+        out.append(separador);
+
+        for (Symbol_lyc symbol : table.values()) {//Fix de armado de tabla cambiado por agregador de atributos "manual"
+            String value = symbol.getValue() == null ? "" : symbol.getValue();
+            String type = symbol.getType() == null ? "" : symbol.getType();
+            String length = (type.equalsIgnoreCase("STRING") || type.equalsIgnoreCase("CTE_STRING"))
+                    ? String.valueOf(symbol.getLength())
+                    : "";
+
+            out.append(String.format(format, symbol.getName(), type, value, length)).append("\n");
+            out.append(separador);
         }
-        return out.substring(0,out.length()-separador.length())+fin;
+
+        if (!table.isEmpty()) {
+            out.setLength(out.length() - separador.length());
+        }
+        out.append(fin);
+
+        return out.toString();
     }
 
 }
