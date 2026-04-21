@@ -34,6 +34,8 @@ terminal PRINT;
 terminal WHILE;
 terminal STRING_CONSTANT;
 terminal INIT;
+terminal IF;
+terminal ELSE;
 
 // Non Terminals
 non terminal program;
@@ -51,6 +53,7 @@ non terminal while_sentence;
 non terminal condition_line;
 non terminal operation;
 non terminal operation_line;
+non terminal if_sentence;
 
 
 
@@ -103,6 +106,7 @@ print_line ::= STRING_CONSTANT:constant {:
     symTable.insert(c,"String",c,false);
     :};
 
+//WHILE
 sentence::=while_sentence  {: System.out.println("WHILE"); :};
 while_sentence ::= WHILE OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque WHILE"); :};
 condition_line ::= expression {: System.out.println("expression"); :};
@@ -114,3 +118,8 @@ operation ::= sentences {: System.out.println("Bloque sentencia"); :};
 sentence ::= init_sentence {: System.out.println("INIT"); :};
 init_sentence ::= INIT OPEN_KEY init_line CLOSE_KEY {: System.out.println("Bloque INIT"); :};
 init_line::= {: System.out.println("Bloque init_line:declaraciones(TODO)"); :};
+
+//IF
+sentence ::= if_sentence {: System.out.println("IF"); :};
+if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque IF"); :};
+if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line ELSE operation_line {: System.out.println("Bloque ELSE"); :};

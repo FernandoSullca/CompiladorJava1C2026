@@ -20,3 +20,12 @@ x = 27 - c
 x = r + 500
 x = 34 * 3
 x = z / f
+
+if (a > b)
+{
+    print("a es mas grande que b")
+}
+else
+{
+    print("a es mas chico o igual a b")
+}

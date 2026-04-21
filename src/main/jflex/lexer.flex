@@ -65,6 +65,8 @@ Comment = "#+" {CommentCharacters} "+#"
 Print = "print"
 While = "while"
 Init = "init"
+If = "if"
+Else = "else"
 
 %%
 
@@ -75,7 +77,10 @@ Init = "init"
   /*  reserve */
   {Print}                                   { return symbol(ParserSym.PRINT); }
   {While}                                   { return symbol(ParserSym.WHILE); }
-  {Init}                                   { return symbol(ParserSym.INIT); }
+  {Init}                                    { return symbol(ParserSym.INIT); }
+  {If}                                      { return symbol(ParserSym.IF); }
+  {Else}                                    { return symbol(ParserSym.ELSE); }
+
   /* identifiers */
   {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }
   /* Constants */
