@@ -13,5 +13,10 @@ while (a > b)
 
 
 init {
+
 }
 b = "asignacion string"
+x = 27 - c
+x = r + 500
+x = 34 * 3
+x = z / f
