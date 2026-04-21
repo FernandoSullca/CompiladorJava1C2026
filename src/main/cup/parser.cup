@@ -38,6 +38,7 @@ terminal INIT;
 terminal IF;
 terminal ELSE;
 terminal COLON;
+terminal COMMA;
 terminal STRING;
 terminal FLOAT;
 terminal INT;
@@ -48,6 +49,7 @@ non terminal init_sentence;
 non terminal init_line;
 non terminal init_type;
 non terminal init_var;
+non terminal var_list;
 
 non terminal sentences;
 non terminal sentence;
@@ -133,10 +135,17 @@ operation ::= sentences {: System.out.println("Bloque sentencia"); :};
 // Init
 sentence ::= init_sentence {: System.out.println("INIT"); :};
 init_sentence ::= INIT OPEN_KEY init_line CLOSE_KEY {: System.out.println("Bloque INIT"); :};
-init_line ::= init_var COLON init_type init_line {: System.out.println("Linea declaracion de variables INIT"); :};
-init_line ::= init_var COLON init_type {: System.out.println("identificador_Final : Type"); :};
+init_line ::= var_list COLON init_type init_line {: System.out.println("Linea declaracion de variables INIT"); :};
+init_line ::= var_list COLON init_type {: System.out.println("identificador_Final : Type"); :};
 
-init_var ::=IDENTIFIER: id {:
+var_list ::= init_var COMMA var_list {::};
+
+var_list ::= IDENTIFIER: id {:
+    varType.add(id.toString());
+    System.out.println("Variable: "+id);
+:};
+
+init_var ::=IDENTIFIER: id  {:
             varType.add(id.toString());
             System.out.println("Variable: "+id.toString());
         :};

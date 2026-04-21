@@ -51,6 +51,7 @@ CloseKey = "}"
 Letter = [a-zA-Z]
 Digit = [0-9]
 Colon =":"
+Comma =","
 
 WhiteSpace = {LineTerminator} | {Identation}
 Identifier = {Letter} ({Letter}|{Digit})*
@@ -111,6 +112,7 @@ Int= "Int"
   {OpenKey}                                 { return symbol(ParserSym.OPEN_KEY); }
   {CloseKey}                                { return symbol(ParserSym.CLOSE_KEY); }
   {Colon}                                   { return symbol(ParserSym.COLON); }
+  {Comma}                                   { return symbol(ParserSym.COMMA); }
   /* whitespace ,Comment*/
   {WhiteSpace}                   { /* ignore */ }
 

@@ -13,7 +13,7 @@ while (a > b)
 
 
 init {
-    p3 : String
+    p1,p2,p3 : String
     p4 : Float
     p5 : Int
 }
