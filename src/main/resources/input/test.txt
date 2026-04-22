@@ -43,3 +43,30 @@ while (var1 in [1+1,2*2,3/3])
 }
 
 read(b)
+
+for (i=0;i<5;i++)
+{
+    print(i)
+}
+
+for (i=0;i<5;)
+{
+    print(i)
+}
+
+
+for (i=0;i<5;i--)
+{
+    print(i)
+}
+
+
+for (i=0;i<5;i+6)
+{
+    print(i)
+}
+
+for (i=0;i<5;i-2)
+{
+    print(i)
+}

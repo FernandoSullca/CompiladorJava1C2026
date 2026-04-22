@@ -45,6 +45,10 @@ terminal INT;
 terminal OPEN_ARRAY;
 terminal CLOSE_ARRAY;
 terminal IN;
+terminal FOR;
+terminal SEMI;
+terminal INC;
+terminal DEC;
 
 // Non Terminals
 non terminal program;
@@ -69,6 +73,8 @@ non terminal condition_line;
 non terminal operation;
 non terminal operation_line;
 non terminal if_sentence;
+non terminal for_sentence;
+non terminal update;
 non terminal especial_condition_line;
 non terminal expression_array;
 
@@ -81,6 +87,13 @@ program ::= sentences {: System.out.println("End"); :};
 sentences ::= sentences sentence
             | sentence
             ;
+
+update ::=
+      IDENTIFIER:id INC
+    | IDENTIFIER:id DEC
+    | IDENTIFIER:id PLUS INTEGER_CONSTANT
+    | IDENTIFIER:id SUB INTEGER_CONSTANT
+    ;
 
 expression ::= expression PLUS term {: System.out.println("+"); :};
 expression ::= expression SUB term {: System.out.println("-"); :};
@@ -195,3 +208,8 @@ init_type ::= INT {: System.out.println("INT");
 sentence ::= if_sentence {: System.out.println("IF"); :};
 if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque IF"); :};
 if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line ELSE operation_line {: System.out.println("Bloque ELSE"); :};
+
+//FOR
+sentence ::= for_sentence {: System.out.println("FOR"); :};
+for_sentence ::= FOR OPEN_BRACKET assignment SEMI condition_line SEMI update CLOSE_BRACKET operation_line {: System.out.println("Bloque FOR"); :};
+for_sentence ::= FOR OPEN_BRACKET assignment SEMI condition_line SEMI CLOSE_BRACKET operation_line {: System.out.println("Bloque FOR"); :};

@@ -51,6 +51,9 @@ CloseKey = "}"
 Letter = [a-zA-Z]
 Digit = [0-9]
 Colon =":"
+Semi = ";"
+Inc = "++"
+Dec = "--"
 Comma =","
 OpenArray = "["
 CloseArray = "]"
@@ -76,6 +79,7 @@ String= "String"
 Float= "Float"
 Int= "Int"
 In = "in"
+For = "for"
 %%
 
 
@@ -93,6 +97,7 @@ In = "in"
   {Float}                                   { return symbol(ParserSym.FLOAT); }
   {Int}                                     { return symbol(ParserSym.INT); }
   {In}                                      { return symbol(ParserSym.IN); }
+  {For}                                     { return symbol(ParserSym.FOR); }
 
   /* identifiers */
   {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }
@@ -119,6 +124,9 @@ In = "in"
   {Comma}                                   { return symbol(ParserSym.COMMA); }  
   {OpenArray}                               { return symbol(ParserSym.OPEN_ARRAY); }
   {CloseArray}                              { return symbol(ParserSym.CLOSE_ARRAY); }
+  {Semi}                                    { return symbol(ParserSym.SEMI); }
+  {Inc}                                     { return symbol(ParserSym.INC); }
+  {Dec}                                     { return symbol(ParserSym.DEC); }
   
   /* whitespace ,Comment*/
   {WhiteSpace}                   { /* ignore */ }
