@@ -1,7 +1,7 @@
 package lyc.compiler.simboleTable;
 
 import lyc.compiler.simboleTable.Symbol_lyc;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 // Esta clase SymbolTable está separada de la clase Symbol_lyc porque cumplen roles diferentes:
 // Symbol_lyc representa una única entrada o símbolo de la tabla (su nombre, tipo, valor y longitud),
@@ -9,10 +9,11 @@ import java.util.HashMap;
 public class SymbolTable {
 
     private static SymbolTable symt;
-    private HashMap<String, Symbol_lyc> table;
+    private LinkedHashMap<String, Symbol_lyc> table;
 
     private SymbolTable() {
-        table = new HashMap<>();
+        // LinkedHashMap mantiene el orden de insercion, util para depurar la salida.
+        table = new LinkedHashMap<>();
     }
 
     public static SymbolTable getSymbolTable(){

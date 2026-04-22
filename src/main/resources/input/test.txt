@@ -1,72 +1,79 @@
-c = d*(e-21)/4
-print("HOLA")
-a = 1
-print(a)
-b = 3
-while (a > b)
-{
-    print("a es mas grande que b")
-    a = a + 1
-}
-
-#+ Esto es un comentario +#
-
+#+ TEST PARA VER GUARDADO MIXTO EN TABLA DE SIMBOLOS +#
+#+ Objetivo: NO declarar todo en init para verificar altas por uso +#
 
 init {
-    p1,p2,p3 : String
-    p4 : Float
-    p5 : Int
+    contador,limite,paso : Int
+    mensaje : String
+    precio : Float
 }
-b = "asignacion string"
-x = 27 - c
-x = r + 500
-x = 34 * 3
-x = z / f
 
-if (a > b)
+#+ --- DECLARADAS EN INIT --- +#
+contador = 1
+limite = 3
+mensaje = "LIT INICIO"
+print(mensaje)
+
+#+ --- NO DECLARADAS (deben aparecer por uso/asignacion) --- +#
+resultado = base * (factor-21) / 4
+resultado = 27 - resultado
+resultado = acumulado + 500
+resultado = 34 * 3
+resultado = divisorA / divisorB
+textoSalida = "LIT STR ASIGN"
+
+#+ --- IF / ELSE --- +#
+if (contador > limite)
 {
-    print("a es mas grande que b")
+    print("LIT_IF_MAYOR")
 }
 else
 {
-    print("a es mas chico o igual a b")
+    print("LIT_IF_MENOR_IGUAL")
 }
 
-while (var1 in [1,2,3])
+#+ --- WHILE CON CONDICION CLASICA --- +#
+while (contador > limite)
 {
-   print(var1)
+    print("contador mayor que limite")
+    contador = contador + 1
 }
 
-while (var1 in [1+1,2*2,3/3])
+#+ --- WHILE ESPECIAL IN [ ... ] --- +#
+while (itemListaA in [1,2,3])
 {
-   print(var1)
+   print(itemListaA)
 }
 
-read(b)
-
-for (i=0;i<5;i++)
+while (itemListaB in [1+1,2*2,3/3])
 {
-    print(i)
+   print(itemListaB)
 }
 
-for (i=0;i<5;)
+#+ --- READ --- +#
+read(limite)
+
+#+ --- FOR (variables por uso) --- +#
+for (indiceA=0;indiceA<5;indiceA++)
 {
-    print(i)
+    print(indiceA)
 }
 
-
-for (i=0;i<5;i--)
+for (indiceB=0;indiceB<5;)
 {
-    print(i)
+    print(indiceB)
 }
 
-
-for (i=0;i<5;i+6)
+for (indiceC=0;indiceC<5;indiceC--)
 {
-    print(i)
+    print(indiceC)
 }
 
-for (i=0;i<5;i-2)
+for (indiceD=0;indiceD<5;indiceD+6)
 {
-    print(i)
+    print(indiceD)
+}
+
+for (indiceE=0;indiceE<5;indiceE-2)
+{
+    print(indiceE)
 }
