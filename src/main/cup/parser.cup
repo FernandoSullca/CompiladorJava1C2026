@@ -150,7 +150,9 @@ operation ::= sentences {: System.out.println("Bloque sentencia"); :};
 
 //WHILE - especial
 while_sentence ::= WHILE OPEN_BRACKET especial_condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque WHILE ESPECIAL"); :};
-especial_condition_line ::= IDENTIFIER:id IN OPEN_ARRAY expression_array CLOSE_ARRAY {: System.out.println("condicion especial"); :};
+especial_condition_line ::= IDENTIFIER:id IN OPEN_ARRAY expression_array CLOSE_ARRAY {: System.out.println("condicion especial");
+                                                                                        String c = id.toString();
+                                                                                        symTable.insert(c,"","",true); :};
 expression_array ::= expression COMMA expression_array;
 expression_array ::= expression {: System.out.println("array de expresiones"); :};
 
