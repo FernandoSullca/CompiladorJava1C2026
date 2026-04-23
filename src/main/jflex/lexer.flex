@@ -80,6 +80,9 @@ Float= "Float"
 Int= "Int"
 In = "in"
 For = "for"
+And = "AND"
+Or = "OR"
+Not = "NOT"
 %%
 
 
@@ -98,6 +101,9 @@ For = "for"
   {Int}                                     { return symbol(ParserSym.INT); }
   {In}                                      { return symbol(ParserSym.IN); }
   {For}                                     { return symbol(ParserSym.FOR); }
+  {And}                                     { return symbol(ParserSym.AND); }
+  {Or}                                      { return symbol(ParserSym.OR); }
+  {Not}                                     { return symbol(ParserSym.NOT); }
 
   /* identifiers */
   {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }

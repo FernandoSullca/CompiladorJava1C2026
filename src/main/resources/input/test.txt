@@ -77,3 +77,34 @@ for (indiceE=0;indiceE<5;indiceE-2)
 {
     print(indiceE)
 }
+
+#+ --- CONDICIONALES --- +#
+
+if (a > b)
+{
+    print(" A mayor a B")
+}
+
+if (a > b AND c > d)
+{
+    print(" A mayor a B Y C mayor a D")
+}
+
+
+if (a > b OR c > d)
+{
+    print(" A mayor a B O C mayor a D")
+}
+
+if (NOT e)
+{
+    print(" Not E")
+}
+
+while(a < b AND c >d)
+{
+    print(" Mientras A menor B Y C mayor a D")
+}
+
+
+
