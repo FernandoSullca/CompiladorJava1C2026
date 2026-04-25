@@ -4,7 +4,9 @@
 init {
     contador,limite,paso : Int
     mensaje : String
-    precio : Float
+    mensaje2 : Int #+ --- 'mensaje' Lanzar Error de "re-declaracion" EN INIT --- +#
+    precio , volumen: Float
+    resultado :Int #+ --- en caso de eliminar/comentar salta excepcion personalizada para pedir su decllaracion en caso de no poder inferir. EJ:textoSalida, pesoInferido" EN INIT --- +#
 }
 
 #+ --- DECLARADAS EN INIT --- +#
@@ -20,6 +22,8 @@ resultado = acumulado + 500
 resultado = 34 * 3
 resultado = divisorA / divisorB
 textoSalida = "LIT STR ASIGN"
+pesoInferido = 35
+
 
 #+ --- IF / ELSE --- +#
 if (contador > limite)
