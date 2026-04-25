@@ -9,6 +9,8 @@ import lyc.compiler.files.SymbolTableGenerator;
 import java.io.IOException;
 import java.io.Reader;
 
+import lyc.compiler.model.CompilerException;
+
 public final class Compiler {
 
     private Compiler(){}
@@ -27,10 +29,13 @@ public final class Compiler {
             FileOutputWriter.writeOutput("final.asm", new SymbolTableGenerator());
         } catch (IOException e) {
             System.err.println("There was an error trying to read input file " + e.getMessage());
-            System.exit(0);
+            System.exit(1);
+        } catch (CompilerException e) {
+            System.err.println("Compilation error: " + e.getMessage());
+            System.exit(1);
         } catch (Exception e) {
             System.err.println("Compilation error: " + e.getMessage());
-            System.exit(0);
+            System.exit(1);
         }
 
         System.out.println("Compilation Successful");
