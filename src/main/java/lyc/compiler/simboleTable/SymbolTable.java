@@ -1,6 +1,5 @@
 package lyc.compiler.simboleTable;
 
-import lyc.compiler.simboleTable.Symbol_lyc;
 import java.util.LinkedHashMap;
 
 // Esta clase SymbolTable está separada de la clase Symbol_lyc porque cumplen roles diferentes:
@@ -34,6 +33,10 @@ public class SymbolTable {
 
     public Symbol_lyc get(String name){
         return table.get(name);
+    }
+
+    public String getType(String name){
+        return exists(name)?table.get(name).type:"Undefine";
     }
 
     public boolean exists(String name){

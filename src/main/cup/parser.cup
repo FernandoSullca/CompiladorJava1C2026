@@ -4,12 +4,21 @@ import java_cup.runtime.*;
 
 import java.util.ArrayList;
 import lyc.compiler.simboleTable.SymbolTable;
-
+import lyc.compiler.model.*;
 class Parser;
 
 action code {:
 public ArrayList<String> varType = new ArrayList<>();
 SymbolTable symTable = SymbolTable.getSymbolTable();
+
+private void semanticError(String msg){
+  throw new RuntimeException("Semantic error: " + msg);
+}
+
+private void requireDeclared(String id){
+      semanticError("Variable no declarada: " + id);
+}
+
 :};
 
 // Terminals
@@ -58,7 +67,6 @@ non terminal program;
 non terminal init_sentence;
 non terminal init_line;
 non terminal init_type;
-non terminal init_var;
 non terminal var_list;
 
 non terminal sentences;
@@ -106,15 +114,50 @@ expression ::= expression LESSTHAN term {: System.out.println("<"); :};
 expression ::= expression LESSEQUALTHAN term {: System.out.println("<="); :};
 expression ::= expression EQUAL term {: System.out.println("=="); :};
 expression ::= expression NOTEQUAL term {: System.out.println("!="); :};
-expression ::= term {: System.out.println("Expression = Term"); :};
+expression ::= term :t {: System.out.println("Expression = Term");
+                       RESULT = t;:};
 term ::= term MULT factor {: System.out.println("*"); :};
 term ::= term DIV factor {: System.out.println("/"); :};
-term ::= factor {: System.out.println("Term = factor"); :};
+term ::= factor:f {:
+                System.out.println("Term = factor");
+                RESULT = f;
+                :};
 factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id);
                             String c = id.toString();
-                            symTable.insert(c,"","",true); :};
-factor ::= INTEGER_CONSTANT:constant {: System.out.println("Constant: " + constant );
-                            symTable.insert(constant.toString(),"INT",constant.toString(),false);:};
+
+                            if(!symTable.exists(id.toString())){
+                                    symTable.insert(c,"","",true);
+                            }
+                            RESULT = symTable.exists(id.toString()) ? symTable.getType(id.toString()) : "UNDEFINED";
+
+                            String name = id.toString();
+
+                                if(!symTable.exists(name)) {
+                                    // Si no existe (caso de los IF/WHILE con variables nuevas), la creamos.
+
+                                    symTable.insert(name, "", "", true);
+                                    System.out.println("Alta por uso (Factor): " + name);
+                                    RESULT = "UNDEFINED";
+                                } else {
+                                    // Si ya existe (ya pasó por INIT o es una asignación en curso),
+                                    // solo recuperamos su tipo actual.
+                                    String existingType = symTable.getType(name);
+                                    // Si el tipo existe pero está vacío (por un error previo),
+                                    // podrías devolver "UNDEFINED" para que el assignment la complete.
+                                    RESULT = (existingType.equals("")) ? "UNDEFINED" : existingType;
+                            }
+
+                            :};
+factor ::= INTEGER_CONSTANT:constant {:
+                            System.out.println("Constant: " + constant );
+                            symTable.insert(constant.toString(),"INT",constant.toString(),false);
+                            RESULT = "INT";
+                            :};
+factor ::= STRING_CONSTANT:constant {:
+                        System.out.println("Constant: " + constant );
+                        symTable.insert(constant.toString(),"STRING",constant.toString(),false);
+                        RESULT = "STRING";
+                                                        :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
 
 // condicionales
@@ -127,14 +170,28 @@ operation ::= sentences {: System.out.println("Bloque sentencia"); :};
 
 // Assignments
 sentence ::= assignment {: System.out.println("End"); :};
-assignment ::= IDENTIFIER:id ASSIG expression {: System.out.println("Assignment "+id+":= expression TODO");
-                 String c = id.toString();
-                 symTable.insert(c,"",c,true);:};
+assignment ::= IDENTIFIER:id ASSIG expression:type {: System.out.println("Assignment "+id+":= expression TODO");
 
-assignment ::= IDENTIFIER:id ASSIG STRING_CONSTANT:constant {:
-                System.out.println("Assignment: "+id+":="+ constant);
-                String c = constant.toString();
-                symTable.insert(c,"STRING",c,false);:};
+                    System.out.println("Assignment " + id + " := expression");
+                    String name = id.toString();
+                    String typeS = (type != null) ? type.toString() : "UNDEFINED";
+                    if (symTable.exists(name)) {
+                        // CASO 1: La variable ya existe (declarada en INIT). Todo OK.
+                        System.out.println("Asignación a variable existente: " + name);
+                    }
+                    // verificacion extra para asignar en la tabla de simbolo solo
+                    // identificadores previamente creador en el bloque init del compilador,
+                    // lanza excepcion y detiene compilacion
+                    else if (typeS != null && (typeS.equals("STRING") || typeS.equals("INT"))) {
+                        // CASO 2: No existe pero la autodeclaramos por uso.
+                        symTable.insert(name, typeS, "", true);
+                        System.out.println("Autodeclarada en ejecución: " + name + " de tipo " + typeS);
+                    }
+                    else {
+                        // CASO 3: No existe y no tenemos tipo para autodeclarar. Error de compilacion.
+                        requireDeclared(name);
+                    }
+                 :};
 
 // WRITE
 sentence ::= print_sentence {: System.out.println("PRINT"); :};
@@ -166,17 +223,15 @@ expression_array ::= expression {: System.out.println("array de expresiones"); :
 // Init
 sentence ::= init_sentence {: System.out.println("INIT"); :};
 init_sentence ::= INIT OPEN_KEY init_line CLOSE_KEY {: System.out.println("Bloque INIT"); :};
-init_line ::= var_list COLON init_type init_line {: System.out.println("Linea declaracion de variables INIT"); :};
-init_line ::= var_list COLON init_type {: System.out.println("identificador_Final : Type"); :};
+init_line ::= var_list COLON init_type init_line {: System.out.println("declaracion de variables INIT: type"); :};
+init_line ::= var_list COLON init_type {: System.out.println("declaracion_init : Type"); :};
 
-var_list ::= init_var COMMA var_list {::};
-
-var_list ::= IDENTIFIER: id {:
-    varType.add(id.toString());
+var_list ::= IDENTIFIER: id  COMMA var_list {:
+  varType.add(id.toString());
     System.out.println("Variable: "+id);
 :};
 
-init_var ::=IDENTIFIER: id  {:
+var_list ::=IDENTIFIER: id  {:
             varType.add(id.toString());
             System.out.println("Variable: "+id.toString());
         :};
@@ -184,7 +239,7 @@ init_var ::=IDENTIFIER: id  {:
 init_type ::= STRING {: System.out.println("STRING");
     for (String v: varType){
         if(symTable.exists(v)){
-           System.out.println("La variable \""+v+"\" Ya fue declarada.");
+           throw new VariableDeclaredException("La variable \""+v+"\" ya fue declarada.");
         }
         symTable.insert(v,"STRING","",true);
     }
@@ -194,7 +249,7 @@ init_type ::= STRING {: System.out.println("STRING");
 init_type ::= FLOAT {: System.out.println("FLOAT");
     for (String v: varType){
         if(symTable.exists(v)){
-           System.out.println("La variable \""+v+"\" Ya fue declarada.");
+           throw new VariableDeclaredException("La variable \""+v+"\" ya fue declarada.");
         }
         symTable.insert(v,"FLOAT","",true);
     }
@@ -204,7 +259,7 @@ init_type ::= FLOAT {: System.out.println("FLOAT");
 init_type ::= INT {: System.out.println("INT");
     for (String v: varType){
         if(symTable.exists(v)){
-           System.out.println("La variable \""+v+"\" Ya fue declarada.");
+           throw new VariableDeclaredException("La variable \""+v+"\" ya fue declarada.");
         }
         symTable.insert(v,"INT","",true);
     }
