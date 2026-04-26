@@ -50,6 +50,7 @@ terminal COLON;
 terminal COMMA;
 terminal STRING;
 terminal FLOAT;
+terminal FLOAT_CONSTANT;
 terminal INT;
 terminal OPEN_ARRAY;
 terminal CLOSE_ARRAY;
@@ -153,6 +154,11 @@ factor ::= INTEGER_CONSTANT:constant {:
                             symTable.insert(constant.toString(),"INT",constant.toString(),false);
                             RESULT = "INT";
                             :};
+factor ::= FLOAT_CONSTANT:constant {:
+                            System.out.println("Constant: " + constant );
+                            symTable.insert(constant.toString(),"FLOAT",constant.toString(),false);
+                            RESULT = "FLOAT";
+                            :};
 factor ::= STRING_CONSTANT:constant {:
                         System.out.println("Constant: " + constant );
                         symTable.insert(constant.toString(),"STRING",constant.toString(),false);
@@ -170,19 +176,19 @@ operation ::= sentences {: System.out.println("Bloque sentencia"); :};
 
 // Assignments
 sentence ::= assignment {: System.out.println("End"); :};
-assignment ::= IDENTIFIER:id ASSIG expression:type {: System.out.println("Assignment "+id+":= expression TODO");
+assignment ::= IDENTIFIER:id ASSIG expression:type {: System.out.println("Assignment "+id+":= expression");
 
                     System.out.println("Assignment " + id + " := expression");
                     String name = id.toString();
                     String typeS = (type != null) ? type.toString() : "UNDEFINED";
                     if (symTable.exists(name)) {
-                        // CASO 1: La variable ya existe (declarada en INIT). Todo OK.
+                        // CASO 1: La variable ya existe (declarada en INIT).
                         System.out.println("Asignación a variable existente: " + name);
                     }
                     // verificacion extra para asignar en la tabla de simbolo solo
                     // identificadores previamente creador en el bloque init del compilador,
                     // lanza excepcion y detiene compilacion
-                    else if (typeS != null && (typeS.equals("STRING") || typeS.equals("INT"))) {
+                    else if (typeS != null && (typeS.equals("STRING") || typeS.equals("INT") || typeS.equals("FLOAT"))) {
                         // CASO 2: No existe pero la autodeclaramos por uso.
                         symTable.insert(name, typeS, "", true);
                         System.out.println("Autodeclarada en ejecución: " + name + " de tipo " + typeS);

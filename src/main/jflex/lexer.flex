@@ -61,6 +61,7 @@ CloseArray = "]"
 WhiteSpace = {LineTerminator} | {Identation}
 Identifier = {Letter} ({Letter}|{Digit})*
 IntegerConstant = {Digit}+
+FloatConstant = {Digit}+"."{Digit}+ | "."{Digit}+ | {Digit}+"."
 StringConstant = "\"" ([^\"])* "\""
 
 //comments de una linea o ningun caracter, no necesita cup(gramatica)
@@ -106,9 +107,16 @@ Not = "NOT"
   {Not}                                     { return symbol(ParserSym.NOT); }
 
   /* identifiers */
-  {Identifier}                             { return symbol(ParserSym.IDENTIFIER, yytext()); }
-  /* Constants */
-  {IntegerConstant}                        { return symbol(ParserSym.INTEGER_CONSTANT, yytext()); }
+  {Identifier}                             { 
+        String value = yytext();
+
+        if (value.length() > MAX_LENGTH ) {
+            throw new InvalidLengthException("La longitud del Identificador "+value +" supera lo permitido.");
+        }
+        
+        return symbol(ParserSym.IDENTIFIER, yytext());
+}
+    
 
   /* operators */
   {Plus}                                    { return symbol(ParserSym.PLUS); }
@@ -145,6 +153,43 @@ Not = "NOT"
       }
 
   /*constants*/
+
+  {IntegerConstant}                        { 
+        String value = yytext();
+        try{
+        int intValue = Integer.parseInt(value);
+        
+        if (intValue > MAX_INT ) {
+            throw new InvalidLengthException("La variable INT "+value +" supera lo permitido.");
+        }
+        if (intValue < MIN_INT ) {
+            throw new InvalidLengthException("La variable INT "+value +" es inferior a lo permitido.");
+        }
+        
+        return symbol(ParserSym.INTEGER_CONSTANT, yytext()); 
+        } catch (NumberFormatException e) {
+        throw new InvalidLengthException("La variable INT " + value + " es inválida o demasiado grande.");
+    }
+}
+
+  {FloatConstant}                          { 
+        String value = yytext();
+            try {
+        float floatValue = Float.parseFloat(value);
+        if (floatValue > MAX_FLOAT ) {
+            throw new InvalidLengthException("La variable FLOAT "+value +" supera lo permitido.");
+        }
+        if (floatValue < MIN_FLOAT ) {
+            throw new InvalidLengthException("La variable FLOAT "+value +" es inferior a lo permitido.");
+        }
+        return symbol(ParserSym.FLOAT_CONSTANT, yytext());
+
+        } catch (NumberFormatException e) {
+        throw new InvalidLengthException("La variable FLOAT " + value + " es inválida o demasiado grande.");
+    }
+}
+
+
   {StringConstant}                          {
         String value = yytext().substring(1, yytext().length() - 1);
         if (value.length() > MAX_LENGTH) {

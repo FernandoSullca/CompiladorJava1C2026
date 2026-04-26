@@ -2,11 +2,16 @@
 #+ Objetivo: NO declarar todo en init para verificar altas por uso +#
 
 init {
-    contador,limite,paso : Int
+    contador,limite,paso,contador4 : Int
     mensaje : String
+    #+ identificadorQueSuperaCuarentaCaracteresFalla : String +#
     mensaje2 : Int #+ --- 'mensaje' Lanzar Error de "re-declaracion" EN INIT --- +#
     precio , volumen: Float
     resultado :Int #+ --- en caso de eliminar/comentar salta excepcion personalizada para pedir su decllaracion en caso de no poder inferir. EJ:textoSalida, pesoInferido" EN INIT --- +#
+    puntoflotante1 : Float
+    puntoflotante2 : Float
+    puntoflotante3 : Float
+    puntoflotante4 : Float
 }
 
 #+ --- DECLARADAS EN INIT --- +#
@@ -14,6 +19,12 @@ contador = 1
 limite = 3
 mensaje = "LIT INICIO"
 print(mensaje)
+puntoflotante1 = 9999.99 
+puntoflotante2 = 99.
+puntoflotante3 = .9999
+
+contador4 = 32767
+puntoflotante4 = 65504.0
 
 #+ --- NO DECLARADAS (deben aparecer por uso/asignacion) --- +#
 resultado = base * (factor-21) / 4
