@@ -154,11 +154,29 @@ factor ::= INTEGER_CONSTANT:constant {:
                             symTable.insert(constant.toString(),"INT",constant.toString(),false);
                             RESULT = "INT";
                             :};
+
+// --- Integer Negativo ---
+factor ::= SUB INTEGER_CONSTANT:constant {:
+            String valNegativo = "-" + constant.toString();
+            System.out.println("Constant Negativa: " + valNegativo);
+            symTable.insert(valNegativo, "INT", valNegativo, false);
+            RESULT = "INT";
+            :};
+
 factor ::= FLOAT_CONSTANT:constant {:
                             System.out.println("Constant: " + constant );
                             symTable.insert(constant.toString(),"FLOAT",constant.toString(),false);
                             RESULT = "FLOAT";
                             :};
+
+// --- Float Negativo ---
+factor ::= SUB FLOAT_CONSTANT:constant {:
+            String valNegativo = "-" + constant.toString();
+            System.out.println("Constant Negativa: " + valNegativo);
+            symTable.insert(valNegativo, "FLOAT", valNegativo, false);
+            RESULT = "FLOAT";
+            :};
+
 factor ::= STRING_CONSTANT:constant {:
                         System.out.println("Constant: " + constant );
                         symTable.insert(constant.toString(),"STRING",constant.toString(),false);

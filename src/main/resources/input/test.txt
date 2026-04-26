@@ -23,6 +23,8 @@ print(mensaje)
 puntoflotante1 = 9999.99 
 puntoflotante2 = 99.
 puntoflotante3 = .9999
+contadorNegativo = -10
+puntoflotanteNegativo = -.9999
 
 contador4 = 32767 #+ En caso de 32768 falla por tamaño del integer (16 bits)+# 
 puntoflotante4 = 65504.0 #+ En caso de 65505 falla por tamaño del float (16 bits)+# 
