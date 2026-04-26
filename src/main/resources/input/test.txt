@@ -4,7 +4,8 @@
 init {
     contador,limite,paso,contador4 : Int
     mensaje : String
-    #+ identificadorQueSuperaCuarentaCaracteresFalla : String +#
+    #+ identificadorQueSuperaCuarentaCaracteresFalla : String +# 
+    #+ En caso de descomentar linea 7 falla por longiut del identificador +# 
     mensaje2 : Int #+ --- 'mensaje' Lanzar Error de "re-declaracion" EN INIT --- +#
     precio , volumen: Float
     resultado :Int #+ --- en caso de eliminar/comentar salta excepcion personalizada para pedir su decllaracion en caso de no poder inferir. EJ:textoSalida, pesoInferido" EN INIT --- +#
@@ -23,8 +24,8 @@ puntoflotante1 = 9999.99
 puntoflotante2 = 99.
 puntoflotante3 = .9999
 
-contador4 = 32767
-puntoflotante4 = 65504.0
+contador4 = 32767 #+ En caso de 32768 falla por tamaño del integer (16 bits)+# 
+puntoflotante4 = 65504.0 #+ En caso de 65505 falla por tamaño del float (16 bits)+# 
 
 #+ --- NO DECLARADAS (deben aparecer por uso/asignacion) --- +#
 resultado = base * (factor-21) / 4
