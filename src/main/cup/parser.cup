@@ -5,9 +5,11 @@ import java_cup.runtime.*;
 import java.util.ArrayList;
 import lyc.compiler.simboleTable.SymbolTable;
 import lyc.compiler.model.*;
+import lyc.compiler.constants.Constants;
+import lyc.compiler.model.InvalidLengthException;
 class Parser;
-
 action code {:
+
 public ArrayList<String> varType = new ArrayList<>();
 SymbolTable symTable = SymbolTable.getSymbolTable();
 
@@ -19,6 +21,31 @@ private void requireDeclared(String id){
       semanticError("Variable no declarada: " + id);
 }
 
+private String validateNegativeInteger(String value) {
+        String valNegativo = "-" + value;
+        try {
+            int intValue = Integer.parseInt(valNegativo);
+            if (intValue < Constants.MIN_INT) {
+             throw new  RuntimeException(new InvalidLengthException("La variable INT " + valNegativo + " es inferior a lo permitido."));
+            }
+            return "INT";
+        } catch (NumberFormatException e) {
+         throw new RuntimeException(new InvalidLengthException("La variable INT " + valNegativo + " es inválida."));
+        }
+}
+
+private String validateNegativeFloat(String value) {
+        String valNegativo = "-" + value;
+        try {
+            double floatValue = Double.parseDouble(valNegativo);
+            if (floatValue < Constants.MIN_FLOAT) {
+           throw new    RuntimeException(new InvalidLengthException("La variable FLOAT " + valNegativo + " es inferior a lo permitido."));
+            }
+            return "FLOAT";
+        } catch (NumberFormatException e) {
+           throw new RuntimeException(new InvalidLengthException("La variable FLOAT " + valNegativo + " es inválida."));
+            }
+}
 :};
 
 // Terminals
@@ -124,16 +151,9 @@ term ::= factor:f {:
                 RESULT = f;
                 :};
 factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id);
-                            String c = id.toString();
-
-                            if(!symTable.exists(id.toString())){
-                                    symTable.insert(c,"","",true);
-                            }
-                            RESULT = symTable.exists(id.toString()) ? symTable.getType(id.toString()) : "UNDEFINED";
-
                             String name = id.toString();
 
-                                if(!symTable.exists(name)) {
+                            if(!symTable.exists(name)) {
                                     // Si no existe (caso de los IF/WHILE con variables nuevas), la creamos.
 
                                     symTable.insert(name, "", "", true);
@@ -160,14 +180,26 @@ factor ::= FLOAT_CONSTANT:constant {:
                             symTable.insert(constant.toString(),"FLOAT",constant.toString(),false);
                             RESULT = "FLOAT";
                             :};
-// FACTOR NEGATIVO
-factor ::= SUB factor:f {:
-                            if(!f.equals("INT") && !f.equals("FLOAT")) {
-                                semanticError("No se puede aplicar negativo a tipo " + f);
-                            } 
-                            System.out.println("Negativo");
-                            RESULT = f; 
-                        :};
+
+// FACTORES NEGATIVO
+// --- Integer Negativo ---
+factor ::= SUB INTEGER_CONSTANT:constant {:
+    String valNegativo = "-" + constant.toString();
+        String type = validateNegativeInteger(constant.toString());
+        System.out.println("Constant Negativa: " + valNegativo);
+        symTable.insert(valNegativo, type, valNegativo, false);
+        RESULT = type;
+:};
+
+// --- Float Negativo ---
+factor ::= SUB FLOAT_CONSTANT:constant {:
+    String valNegativo = "-" + constant.toString();
+        String type = validateNegativeFloat(constant.toString());
+        System.out.println("Constant Negativa: " + valNegativo);
+        symTable.insert(valNegativo, type, valNegativo, false);
+        RESULT = type;
+:};
+
 
 factor ::= STRING_CONSTANT:constant {:
                         System.out.println("Constant: " + constant );
