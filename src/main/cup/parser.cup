@@ -109,7 +109,6 @@ non terminal read_sentence;
 non terminal read_line;
 non terminal while_sentence;
 non terminal condition_line;
-non terminal operation;
 non terminal operation_line;
 non terminal if_sentence;
 non terminal for_sentence;
@@ -121,7 +120,7 @@ non terminal expression_array;
 // Start Symbol Definition
 start with program;
 
-program ::= sentences {: System.out.println("End"); :};
+program ::= sentences {: System.out.println("End :Programa"); :};
 
 sentences ::= sentences sentence
             | sentence
@@ -213,12 +212,12 @@ condition_line ::= expression {: System.out.println("expression"); :};
 condition_line ::= expression AND  expression {: System.out.println("AND"); :};
 condition_line ::= expression OR  expression {: System.out.println("OR"); :};
 condition_line ::= NOT expression {: System.out.println("NOT"); :};
-operation_line ::= OPEN_KEY operation CLOSE_KEY {: System.out.println("Bloque operacion"); :};
-operation ::= sentences {: System.out.println("Bloque sentencia"); :};
+// operaciones (While, For, If)
+operation_line ::= OPEN_KEY sentences CLOSE_KEY {: System.out.println("Bloque de codigo {}"); :};
 
 // Assignments
-sentence ::= assignment {: System.out.println("End"); :};
-assignment ::= IDENTIFIER:id ASSIG expression:type {: System.out.println("Assignment "+id+":= expression");
+sentence ::= assignment {: System.out.println("End Asignacion"); :};
+assignment ::= IDENTIFIER:id ASSIG expression:type {:
 
                     System.out.println("Assignment " + id + " := expression");
                     String name = id.toString();
@@ -226,6 +225,7 @@ assignment ::= IDENTIFIER:id ASSIG expression:type {: System.out.println("Assign
                     if (symTable.exists(name)) {
                         // CASO 1: La variable ya existe (declarada en INIT).
                         System.out.println("Asignación a variable existente: " + name);
+                        //Verificar si corresponde update de la variable para contenido en la tabla de simbolos
                     }
                     // verificacion extra para asignar en la tabla de simbolo solo
                     // identificadores previamente creador en el bloque init del compilador,
@@ -242,22 +242,22 @@ assignment ::= IDENTIFIER:id ASSIG expression:type {: System.out.println("Assign
                  :};
 
 // WRITE
-sentence ::= print_sentence {: System.out.println("PRINT"); :};
+sentence ::= print_sentence {: System.out.println("End PRINT"); :};
 print_sentence ::= PRINT OPEN_BRACKET print_line CLOSE_BRACKET {: System.out.println("Bloque WRITE/PRINT"); :};
-print_line ::= IDENTIFIER:id {: System.out.println("Print: " + id); :};
+print_line ::= IDENTIFIER:id {: System.out.println("Print id: " + id); :};
 print_line ::= STRING_CONSTANT:constant {:
-    System.out.println("Print: " + constant);
+    System.out.println("Print STRING_CONSTANT: " + constant);
     String c = constant.toString();
-    symTable.insert(c,"String",c,false);
+    symTable.insert(c,"STRING",c,false);
     :};
 
 // READ
-sentence ::= read_sentence {: System.out.println("READ"); :};
+sentence ::= read_sentence {: System.out.println("End READ"); :};
 read_sentence ::= READ OPEN_BRACKET read_line CLOSE_BRACKET {: System.out.println("Bloque READ"); :};
 read_line ::= IDENTIFIER:id {: System.out.println("Read: " + id); :};
 
 //WHILE
-sentence::=while_sentence  {: System.out.println("WHILE"); :};
+sentence::=while_sentence  {: System.out.println("End WHILE"); :};
 while_sentence ::= WHILE OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque WHILE"); :};
 
 //WHILE - especial
@@ -266,13 +266,13 @@ especial_condition_line ::= IDENTIFIER:id IN OPEN_ARRAY expression_array CLOSE_A
                                                                                         String c = id.toString();
                                                                                         symTable.insert(c,"","",true); :};
 expression_array ::= expression COMMA expression_array;
-expression_array ::= expression {: System.out.println("array de expresiones"); :};
+expression_array ::= expression {::};
 
 // Init
-sentence ::= init_sentence {: System.out.println("INIT"); :};
-init_sentence ::= INIT OPEN_KEY init_line CLOSE_KEY {: System.out.println("Bloque INIT"); :};
-init_line ::= var_list COLON init_type init_line {: System.out.println("declaracion de variables INIT: type"); :};
-init_line ::= var_list COLON init_type {: System.out.println("declaracion_init : Type"); :};
+sentence ::= init_sentence {: System.out.println("End INIT"); :};
+init_sentence ::= INIT OPEN_KEY init_line CLOSE_KEY {: System.out.println("Estructura Bloque INIT"); :};
+init_line ::= var_list COLON init_type init_line {::};
+init_line ::= var_list COLON init_type {::};
 
 var_list ::= IDENTIFIER: id  COMMA var_list {:
   varType.add(id.toString());
@@ -291,6 +291,7 @@ init_type ::= STRING {: System.out.println("STRING");
         }
         symTable.insert(v,"STRING","",true);
     }
+    System.out.println("Declaracion de variables tipo STRING (" + varType.size() + " variables)");
     varType.clear();
 :};
 
@@ -301,6 +302,7 @@ init_type ::= FLOAT {: System.out.println("FLOAT");
         }
         symTable.insert(v,"FLOAT","",true);
     }
+    System.out.println("Declaracion de variables tipo FLOAT (" + varType.size() + " variables)");
     varType.clear();
 :};
 
@@ -311,15 +313,16 @@ init_type ::= INT {: System.out.println("INT");
         }
         symTable.insert(v,"INT","",true);
     }
+    System.out.println("Declaracion de variables tipo INT (" + varType.size() + " variables)");
     varType.clear();
 :};
 
 //IF
-sentence ::= if_sentence {: System.out.println("IF"); :};
+sentence ::= if_sentence {: System.out.println("End IF"); :};
 if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque IF"); :};
-if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line ELSE operation_line {: System.out.println("Bloque ELSE"); :};
+if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line ELSE operation_line {: System.out.println("Bloque IF/ELSE"); :};
 
 //FOR
-sentence ::= for_sentence {: System.out.println("FOR"); :};
-for_sentence ::= FOR OPEN_BRACKET assignment SEMI condition_line SEMI update CLOSE_BRACKET operation_line {: System.out.println("Bloque FOR"); :};
+sentence ::= for_sentence {: System.out.println("End FOR"); :};
+for_sentence ::= FOR OPEN_BRACKET assignment SEMI condition_line SEMI update CLOSE_BRACKET operation_line {: System.out.println("Bloque FOR Con Pasos"); :};
 for_sentence ::= FOR OPEN_BRACKET assignment SEMI condition_line SEMI CLOSE_BRACKET operation_line {: System.out.println("Bloque FOR"); :};
