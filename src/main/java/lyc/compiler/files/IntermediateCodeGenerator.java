@@ -1,7 +1,6 @@
 package lyc.compiler.files;
 
 import lyc.compiler.intermediateCode.Polaca;
-import lyc.compiler.simboleTable.SymbolTable;
 
 import java.io.FileWriter;
 import java.io.IOException;

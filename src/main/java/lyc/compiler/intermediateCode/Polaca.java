@@ -6,7 +6,7 @@ import java.util.List;
 public class Polaca {
     private static Polaca instance;
     private List<String> polaca;
-    private int temporalCounter; // Para generar variables temporales t1, t2, t3, etc.
+    private int temporalCounter; // Para generar variables temporales @t1, @t2, @t3, etc.
 
     private Polaca() {
         this.polaca = new ArrayList<>();
@@ -27,11 +27,11 @@ public class Polaca {
         polaca.add(element);
     }
     /**
-     * Genera una variable temporal única (t1, t2, t3, etc)
+     * Genera una variable temporal única (@t1, @t2, @t3, etc)
      */
     public String generateTemporal() {
         temporalCounter++;
-        return "t" + temporalCounter;
+        return "@t" + temporalCounter;
     }
 
 
@@ -60,8 +60,8 @@ public class Polaca {
      * Formato: valorOrigen id :=
      */
     public void addAssignment(String value, String identifier) {
-        addElement(identifier);
         addElement(value);
+        addElement(identifier);
         addElement(":=");
     }
 
@@ -70,7 +70,7 @@ public class Polaca {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (String element : polaca) {
-            sb.append(element).append(" ");
+            sb.append("\""+element+"\"" ).append(" ");
         }
         return sb.toString().trim();
     }
