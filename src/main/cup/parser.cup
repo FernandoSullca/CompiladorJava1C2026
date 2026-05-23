@@ -134,18 +134,29 @@ update ::=
     | IDENTIFIER:id SUB INTEGER_CONSTANT
     ;
 
-expression ::= expression PLUS term {: System.out.println("+"); :};
-expression ::= expression SUB term {: System.out.println("-"); :};
-expression ::= expression MORETHAN term {: System.out.println(">"); :};
-expression ::= expression MOREEQUALTHAN term {: System.out.println(">="); :};
-expression ::= expression LESSTHAN term {: System.out.println("<"); :};
-expression ::= expression LESSEQUALTHAN term {: System.out.println("<="); :};
-expression ::= expression EQUAL term {: System.out.println("=="); :};
-expression ::= expression NOTEQUAL term {: System.out.println("!="); :};
+expression ::= expression PLUS term {: System.out.println("+");
+ polaca.addElement("+");:};
+expression ::= expression SUB term {: System.out.println("-");
+polaca.addElement("-");:};
+expression ::= expression MORETHAN term {: System.out.println(">");
+ polaca.addElement(">"); :};
+expression ::= expression MOREEQUALTHAN term {: System.out.println(">=");
+ polaca.addElement(">="); :};
+expression ::= expression LESSTHAN term {: System.out.println("<");
+ polaca.addElement("<");:};
+expression ::= expression LESSEQUALTHAN term {: System.out.println("<=");
+ polaca.addElement("<=");:};
+expression ::= expression EQUAL term {: System.out.println("==");
+ polaca.addElement("==");:};
+expression ::= expression NOTEQUAL term {: System.out.println("!=");
+ polaca.addElement("==");:};
 expression ::= term :t {: System.out.println("Expression = Term");
                           RESULT = t;:};
-term ::= term MULT factor {: System.out.println("*"); :};
-term ::= term DIV factor {: System.out.println("/"); :};
+term ::= term MULT factor {: System.out.println("*");
+ polaca.addElement("*");
+:};
+term ::= term DIV factor {: System.out.println("/");
+ polaca.addElement("/"); :};
 term ::= factor:f {:
                 System.out.println("Term = factor");
                 RESULT = f;
