@@ -7,12 +7,13 @@ import lyc.compiler.simboleTable.SymbolTable;
 import lyc.compiler.model.*;
 import lyc.compiler.constants.Constants;
 import lyc.compiler.model.InvalidLengthException;
+import lyc.compiler.intermediateCode.Polaca;
 class Parser;
 action code {:
 
 public ArrayList<String> varType = new ArrayList<>();
 SymbolTable symTable = SymbolTable.getSymbolTable();
-
+Polaca polaca = Polaca.getInstance();
 private void semanticError(String msg){
   throw new RuntimeException("Semantic error: " + msg);
 }
@@ -142,7 +143,7 @@ expression ::= expression LESSEQUALTHAN term {: System.out.println("<="); :};
 expression ::= expression EQUAL term {: System.out.println("=="); :};
 expression ::= expression NOTEQUAL term {: System.out.println("!="); :};
 expression ::= term :t {: System.out.println("Expression = Term");
-                       RESULT = t;:};
+                          RESULT = t;:};
 term ::= term MULT factor {: System.out.println("*"); :};
 term ::= term DIV factor {: System.out.println("/"); :};
 term ::= factor:f {:
@@ -166,18 +167,22 @@ factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id);
                                     // podrías devolver "UNDEFINED" para que el assignment la complete.
                                     RESULT = (existingType.equals("")) ? "UNDEFINED" : existingType;
                             }
+                            //Guardado de polaca por factor
+                            polaca.addElement(name);
 
                             :};
 factor ::= INTEGER_CONSTANT:constant {:
                             System.out.println("Constant: " + constant );
                             symTable.insert(constant.toString(),"INT",constant.toString(),false);
                             RESULT = "INT";
+                            polaca.addElement(constant.toString());
                             :};
 
 factor ::= FLOAT_CONSTANT:constant {:
                             System.out.println("Constant: " + constant );
                             symTable.insert(constant.toString(),"FLOAT",constant.toString(),false);
                             RESULT = "FLOAT";
+                            polaca.addElement(constant.toString());
                             :};
 
 // FACTORES NEGATIVO
@@ -187,6 +192,7 @@ factor ::= SUB INTEGER_CONSTANT:constant {:
         String type = validateNegativeInteger(constant.toString());
         System.out.println("Constant Negativa: " + valNegativo);
         symTable.insert(valNegativo, type, valNegativo, false);
+        polaca.addElement(valNegativo.toString());
         RESULT = type;
 :};
 
@@ -196,6 +202,7 @@ factor ::= SUB FLOAT_CONSTANT:constant {:
         String type = validateNegativeFloat(constant.toString());
         System.out.println("Constant Negativa: " + valNegativo);
         symTable.insert(valNegativo, type, valNegativo, false);
+         polaca.addElement(valNegativo.toString());
         RESULT = type;
 :};
 
@@ -204,6 +211,7 @@ factor ::= STRING_CONSTANT:constant {:
                         System.out.println("Constant: " + constant );
                         symTable.insert(constant.toString(),"STRING",constant.toString(),false);
                         RESULT = "STRING";
+                        polaca.addElement(constant.toString());
                                                         :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
 
@@ -217,6 +225,7 @@ operation_line ::= OPEN_KEY sentences CLOSE_KEY {: System.out.println("Bloque de
 
 // Assignments
 sentence ::= assignment {: System.out.println("End Asignacion"); :};
+
 assignment ::= IDENTIFIER:id ASSIG expression:type {:
 
                     System.out.println("Assignment " + id + " := expression");
