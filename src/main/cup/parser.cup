@@ -259,6 +259,8 @@ assignment ::= IDENTIFIER:id ASSIG expression:type {:
                         // CASO 3: No existe y no tenemos tipo para autodeclarar. Error de compilacion.
                         requireDeclared(name);
                     }
+                      polaca.addElement(name);
+                      polaca.addElement(":=");
                  :};
 
 // WRITE
