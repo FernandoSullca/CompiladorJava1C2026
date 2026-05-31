@@ -139,17 +139,41 @@ expression ::= expression PLUS term {: System.out.println("+");
 expression ::= expression SUB term {: System.out.println("-");
 polaca.addElement("-");:};
 expression ::= expression MORETHAN term {: System.out.println(">");
- polaca.addElement(">"); :};
+ polaca.addElement("CMP");
+ polaca.addElement("BLE"); // Invertido
+ polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.addElement("_"); // Relleno reservado
+:};
 expression ::= expression MOREEQUALTHAN term {: System.out.println(">=");
- polaca.addElement(">="); :};
+ polaca.addElement("CMP");
+ polaca.addElement("BLT"); // Invertido
+ polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.addElement("_"); // Relleno reservado
+:};
 expression ::= expression LESSTHAN term {: System.out.println("<");
- polaca.addElement("<");:};
+ polaca.addElement("CMP");
+ polaca.addElement("BGE"); // Invertido
+ polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.addElement("_"); // Relleno reservado
+:};
 expression ::= expression LESSEQUALTHAN term {: System.out.println("<=");
- polaca.addElement("<=");:};
+ polaca.addElement("CMP");
+ polaca.addElement("BGT"); // Invertido
+ polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.addElement("_"); // Relleno reservado
+:};
 expression ::= expression EQUAL term {: System.out.println("==");
- polaca.addElement("==");:};
+ polaca.addElement("CMP");
+ polaca.addElement("BNE"); // Invertido
+ polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.addElement("_"); // Relleno reservado
+:};
 expression ::= expression NOTEQUAL term {: System.out.println("!=");
- polaca.addElement("==");:};
+ polaca.addElement("CMP");
+ polaca.addElement("BEQ"); // Invertido
+ polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.addElement("_"); // Relleno reservado
+:};
 expression ::= term :t {: System.out.println("Expression = Term");
                           RESULT = t;:};
 term ::= term MULT factor {: System.out.println("*");
@@ -341,8 +365,33 @@ init_type ::= INT {: System.out.println("INT");
 
 //IF
 sentence ::= if_sentence {: System.out.println("End IF"); :};
-if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque IF"); :};
-if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line ELSE operation_line {: System.out.println("Bloque IF/ELSE"); :};
+if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: 
+    System.out.println("Bloque IF");
+    // Al terminar el IF (sin else), completamos el salto condicional falso reservado en condition_line
+    int posSalto = polaca.desapilarSalto();
+    polaca.setElementAt(posSalto, String.valueOf(polaca.getPosicionActual()));
+:};
+
+if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: 
+    // FIN DEL BLOQUE IF (antes del ELSE)
+    // 1. Agregar salto incondicional para saltar el else
+    polaca.addElement("BI");
+    int posSaltoIncondicional = polaca.getPosicionActual();
+    polaca.apilarSalto(posSaltoIncondicional); // Guardamos para rellenar al final del else
+    polaca.addElement("_"); // [R2] reservado
+    
+    // 2. Rellenar el salto del IF falso (Bxx) con la posición actual (inicio del else)
+    int saltoIncondicional = polaca.desapilarSalto();
+    int saltoFalsoIF = polaca.desapilarSalto();
+    polaca.apilarSalto(saltoIncondicional); // Lo volvemos a poner en el tope
+    
+    polaca.setElementAt(saltoFalsoIF, String.valueOf(polaca.getPosicionActual()));
+:} ELSE operation_line {: 
+    System.out.println("Bloque IF/ELSE");
+    // Al terminar el ELSE, sacamos el BI y lo rellenamos con la posicion final
+    int saltoFinIF = polaca.desapilarSalto();
+    polaca.setElementAt(saltoFinIF, String.valueOf(polaca.getPosicionActual()));
+:};
 
 //FOR
 sentence ::= for_sentence {: System.out.println("End FOR"); :};
