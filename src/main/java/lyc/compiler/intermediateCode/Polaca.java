@@ -2,14 +2,17 @@ package lyc.compiler.intermediateCode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class Polaca {
     private static Polaca instance;
     private List<String> polaca;
     private int temporalCounter; // Para generar variables temporales @t1, @t2, @t3, etc.
+    private Stack<Integer> saltos; // Pila para manejar las direcciones de saltos (IF, WHILE, etc.)
 
     private Polaca() {
         this.polaca = new ArrayList<>();
+        this.saltos = new Stack<>();
         this.temporalCounter = 0;
     }
 
@@ -26,6 +29,7 @@ public class Polaca {
     public void addElement(String element) {
         polaca.add(element);
     }
+
     /**
      * Genera una variable temporal única (@t1, @t2, @t3, etc)
      */
@@ -41,6 +45,7 @@ public class Polaca {
 
     public void clear() {
         polaca.clear();
+        saltos.clear();
         temporalCounter = 0;
     }
 
@@ -65,6 +70,40 @@ public class Polaca {
         addElement(":=");
     }
 
+    /**
+     * Retorna la posición actual (índice donde se insertará el próximo elemento)
+     */
+    public int getPosicionActual() {
+        return polaca.size();
+    }
+
+    /**
+     * Apila una dirección en la pila de saltos
+     */
+    public void apilarSalto(int direccion) {
+        saltos.push(direccion);
+    }
+
+    /**
+     * Desapila una dirección de la pila de saltos
+     */
+    public int desapilarSalto() {
+        if (!saltos.isEmpty()) {
+            return saltos.pop();
+        }
+        throw new RuntimeException("Error: Pila de saltos vacía al intentar desapilar.");
+    }
+
+    /**
+     * Rellena una celda de la polaca con un valor específico (usado para completar saltos)
+     */
+    public void setElementAt(int index, String value) {
+        if (index >= 0 && index < polaca.size()) {
+            polaca.set(index, value);
+        } else {
+            throw new RuntimeException("Error: Índice fuera de rango al intentar rellenar celda de polaca.");
+        }
+    }
 
     @Override
     public String toString() {

@@ -39,6 +39,13 @@ textoSalida = "LIT STR ASIGN"
 pesoInferido = 35
 
 
+#+ --- IF --- +#
+if (contador > limite)
+{
+    print("LIT_IF_MAYOR SIN ELSE")
+}
+
+
 #+ --- IF / ELSE --- +#
 if (contador > limite)
 {
