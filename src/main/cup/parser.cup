@@ -307,21 +307,21 @@ read_line ::= IDENTIFIER:id {: System.out.println("Read: " + id); :};
 sentence::=while_sentence  {: System.out.println("End WHILE"); :};
 while_sentence ::= WHILE {:polaca.addElement("ET");
         int posSaltoIncondicional = polaca.getPosicionActual();
-        polaca.apilarSaltoPila(posSaltoIncondicional); // Guardamos posicion inicial del while
+        polaca.apilarSaltoPila(posSaltoIncondicional -1); // Guardamos posicion inicial del while
         System.out.println("Bloque WHILE");:} 
     
     OPEN_BRACKET condition_or_especial {:
-        polaca.addElement("_");
+        //polaca.addElement("_");
         int finDeCondicion = polaca.getPosicionActual();
-        polaca.apilarSaltoPila(finDeCondicion); // Guardamos posicion para salir del while si no cumple condicion
+        polaca.apilarSaltoPila(finDeCondicion -1); // Guardamos posicion para salir del while si no cumple condicion
     :}
     
     CLOSE_BRACKET operation_line {: 
         polaca.addElement("BI");
         int finDeCondicion = polaca.desapilarSaltoPila();
-        polaca.setElementAt(finDeCondicion +1, String.valueOf(polaca.getPosicionActual()));
+        polaca.setElementAt(finDeCondicion, String.valueOf(polaca.getPosicionActual()));
         int inicioDeCondicion = polaca.desapilarSaltoPila();
-        polaca.setElementAt(String.valueOf(inicioDeCondicion));
+        polaca.addElement(String.valueOf(inicioDeCondicion));
     :};
 
 // Resuelve la ambigüedad entre condition_line y especial_condition_line

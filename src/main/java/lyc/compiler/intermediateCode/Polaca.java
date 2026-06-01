@@ -82,6 +82,7 @@ public class Polaca {
      */
     public void apilarSaltoPila(int direccion) {
         saltos.push(direccion);
+        System.out.println("Apilando dirección de salto: " + direccion);
     }
 
     /**
@@ -98,6 +99,7 @@ public class Polaca {
      * Rellena una celda de la polaca con un valor específico (usado para completar saltos)
      */
     public void setElementAt(int index, String value) {
+        System.out.println("Índice: " + index + ", Valor: " + value);
         if (index >= 0 && index < polaca.size()) {
             polaca.set(index, value);
         } else {
