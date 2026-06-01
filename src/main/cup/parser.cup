@@ -141,37 +141,37 @@ polaca.addElement("-");:};
 expression ::= expression MORETHAN term {: System.out.println(">");
  polaca.addElement("CMP");
  polaca.addElement("BLE"); // Invertido
- polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.apilarSaltoPila(polaca.getPosicionActual());
  polaca.addElement("_"); // Relleno reservado
 :};
 expression ::= expression MOREEQUALTHAN term {: System.out.println(">=");
  polaca.addElement("CMP");
  polaca.addElement("BLT"); // Invertido
- polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.apilarSaltoPila(polaca.getPosicionActual());
  polaca.addElement("_"); // Relleno reservado
 :};
 expression ::= expression LESSTHAN term {: System.out.println("<");
  polaca.addElement("CMP");
  polaca.addElement("BGE"); // Invertido
- polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.apilarSaltoPila(polaca.getPosicionActual());
  polaca.addElement("_"); // Relleno reservado
 :};
 expression ::= expression LESSEQUALTHAN term {: System.out.println("<=");
  polaca.addElement("CMP");
  polaca.addElement("BGT"); // Invertido
- polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.apilarSaltoPila(polaca.getPosicionActual());
  polaca.addElement("_"); // Relleno reservado
 :};
 expression ::= expression EQUAL term {: System.out.println("==");
  polaca.addElement("CMP");
  polaca.addElement("BNE"); // Invertido
- polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.apilarSaltoPila(polaca.getPosicionActual());
  polaca.addElement("_"); // Relleno reservado
 :};
 expression ::= expression NOTEQUAL term {: System.out.println("!=");
  polaca.addElement("CMP");
  polaca.addElement("BEQ"); // Invertido
- polaca.apilarSalto(polaca.getPosicionActual());
+ polaca.apilarSaltoPila(polaca.getPosicionActual());
  polaca.addElement("_"); // Relleno reservado
 :};
 expression ::= term :t {: System.out.println("Expression = Term");
@@ -304,7 +304,24 @@ read_line ::= IDENTIFIER:id {: System.out.println("Read: " + id); :};
 
 //WHILE
 sentence::=while_sentence  {: System.out.println("End WHILE"); :};
-while_sentence ::= WHILE OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque WHILE"); :};
+while_sentence ::= WHILE {:polaca.addElement("ET");
+        int posSaltoIncondicional = polaca.getPosicionActual();
+        polaca.apilarSaltoPila(posSaltoIncondicional); // Guardamos posicion inicial del while
+        System.out.println("Bloque WHILE");:} 
+    
+    OPEN_BRACKET condition_line {:
+        polaca.addElement("_");
+        int finDeCondicion = polaca.getPosicionActual();
+        polaca.apilarSaltoPila(finDeCondicion); // Guardamos posicion para salir del while si no cumple condicion
+    :}
+    
+    CLOSE_BRACKET operation_line {: 
+        polaca.addElement("BI");
+        int finDeCondicion = polaca.desapilarSaltoPila();
+        polaca.setElementAt(finDeCondicion +1, String.valueOf(polaca.getPosicionActual()));
+        int inicioDeCondicion = polaca.desapilarSaltoPila();
+        polaca.setElementAt(String.valueOf(inicioDeCondicion));
+    :};
 
 //WHILE - especial
 while_sentence ::= WHILE OPEN_BRACKET especial_condition_line CLOSE_BRACKET operation_line {: System.out.println("Bloque WHILE ESPECIAL"); :};
@@ -312,7 +329,7 @@ especial_condition_line ::= IDENTIFIER:id IN OPEN_ARRAY expression_array CLOSE_A
                                                                                         String c = id.toString();
                                                                                         symTable.insert(c,"","",true); :};
 expression_array ::= expression COMMA expression_array;
-expression_array ::= expression {::};
+expression_array ::= expression; 
 
 // Init
 sentence ::= init_sentence {: System.out.println("End INIT"); :};
@@ -368,7 +385,7 @@ sentence ::= if_sentence {: System.out.println("End IF"); :};
 if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {: 
     System.out.println("Bloque IF");
     // Al terminar el IF (sin else), completamos el salto condicional falso reservado en condition_line
-    int posSalto = polaca.desapilarSalto();
+    int posSalto = polaca.desapilarSaltoPila();
     polaca.setElementAt(posSalto, String.valueOf(polaca.getPosicionActual()));
 :};
 
@@ -377,19 +394,19 @@ if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {:
     // 1. Agregar salto incondicional para saltar el else
     polaca.addElement("BI");
     int posSaltoIncondicional = polaca.getPosicionActual();
-    polaca.apilarSalto(posSaltoIncondicional); // Guardamos para rellenar al final del else
+    polaca.apilarSaltoPila(posSaltoIncondicional); // Guardamos para rellenar al final del else
     polaca.addElement("_"); // [R2] reservado
     
     // 2. Rellenar el salto del IF falso (Bxx) con la posición actual (inicio del else)
-    int saltoIncondicional = polaca.desapilarSalto();
-    int saltoFalsoIF = polaca.desapilarSalto();
-    polaca.apilarSalto(saltoIncondicional); // Lo volvemos a poner en el tope
+    int saltoIncondicional = polaca.desapilarSaltoPila();
+    int saltoFalsoIF = polaca.desapilarSaltoPila();
+    polaca.apilarSaltoPila(saltoIncondicional); // Lo volvemos a poner en el tope
     
     polaca.setElementAt(saltoFalsoIF, String.valueOf(polaca.getPosicionActual()));
 :} ELSE operation_line {: 
     System.out.println("Bloque IF/ELSE");
     // Al terminar el ELSE, sacamos el BI y lo rellenamos con la posicion final
-    int saltoFinIF = polaca.desapilarSalto();
+    int saltoFinIF = polaca.desapilarSaltoPila();
     polaca.setElementAt(saltoFinIF, String.valueOf(polaca.getPosicionActual()));
 :};
 

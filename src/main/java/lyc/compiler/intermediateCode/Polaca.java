@@ -80,14 +80,14 @@ public class Polaca {
     /**
      * Apila una dirección en la pila de saltos
      */
-    public void apilarSalto(int direccion) {
+    public void apilarSaltoPila(int direccion) {
         saltos.push(direccion);
     }
 
     /**
      * Desapila una dirección de la pila de saltos
      */
-    public int desapilarSalto() {
+    public int desapilarSaltoPila() {
         if (!saltos.isEmpty()) {
             return saltos.pop();
         }

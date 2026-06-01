@@ -64,6 +64,7 @@ while (contador > limite)
 }
 
 #+ --- WHILE ESPECIAL IN [ ... ] --- +#
+
 while (itemListaA in [1,2,3])
 {
    print(itemListaA)
