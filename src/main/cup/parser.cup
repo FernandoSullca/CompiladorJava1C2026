@@ -114,6 +114,7 @@ non terminal condition_or_especial;
 non terminal operation_line;
 non terminal if_sentence;
 non terminal for_sentence;
+non terminal for_start;
 non terminal update;
 non terminal especial_condition_line;
 non terminal expression_array;
@@ -127,12 +128,12 @@ program ::= sentences {: System.out.println("End :Programa"); :};
 sentences ::= sentences sentence
             | sentence
             ;
-
+//condicionales de autoinclemento para for
 update ::=
-      IDENTIFIER:id INC
-    | IDENTIFIER:id DEC
-    | IDENTIFIER:id PLUS INTEGER_CONSTANT
-    | IDENTIFIER:id SUB INTEGER_CONSTANT
+      IDENTIFIER:id INC {: RESULT = id.toString() + " INC"; :}
+    | IDENTIFIER:id DEC {: RESULT = id.toString() + " DEC"; :}
+    | IDENTIFIER:id PLUS INTEGER_CONSTANT:c {: RESULT = id.toString() + " PLUS " + c.toString(); :}
+    | IDENTIFIER:id SUB INTEGER_CONSTANT:c {: RESULT = id.toString() + " SUB " + c.toString(); :}
     ;
 
 expression ::= expression PLUS term {: System.out.println("+");
@@ -308,7 +309,8 @@ sentence::=while_sentence  {: System.out.println("End WHILE"); :};
 while_sentence ::= WHILE {:polaca.addElement("ET");
         int posSaltoIncondicional = polaca.getPosicionActual();
         polaca.apilarSaltoPila(posSaltoIncondicional -1); // Guardamos posicion inicial del while
-        System.out.println("Bloque WHILE");:} 
+        System.out.println("Bloque WHILE");
+        :}
     
     OPEN_BRACKET condition_or_especial {:
         //polaca.addElement("_");
@@ -415,5 +417,69 @@ if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {:
 
 //FOR
 sentence ::= for_sentence {: System.out.println("End FOR"); :};
-for_sentence ::= FOR OPEN_BRACKET assignment SEMI condition_line SEMI update CLOSE_BRACKET operation_line {: System.out.println("Bloque FOR Con Pasos"); :};
-for_sentence ::= FOR OPEN_BRACKET assignment SEMI condition_line SEMI CLOSE_BRACKET operation_line {: System.out.println("Bloque FOR"); :};
+
+for_start ::= FOR OPEN_BRACKET assignment SEMI {:
+        polaca.addElement("ET");
+        int posSaltoIncondicional = polaca.getPosicionActual();
+        polaca.apilarSaltoPila(posSaltoIncondicional - 1);
+    :} condition_line SEMI {:
+        int finDeCondicion = polaca.getPosicionActual();
+        polaca.apilarSaltoPila(finDeCondicion - 1);
+    :};
+
+//For con tercer condicion, similar al while
+for_sentence ::= for_start update:u CLOSE_BRACKET operation_line {:
+        if (u != null) {
+            //U es el RESULT asignado a la reglas
+            String updateStr = u.toString();
+            String[] parts = updateStr.split(" ");
+            String id = parts[0];
+            String op = parts[1];
+            if (op.equals("INC")) {
+                polaca.addElement(id);
+                polaca.addElement("1");
+                polaca.addElement("+");
+                polaca.addElement(id);
+                polaca.addElement(":=");
+            } else if (op.equals("DEC")) {
+                polaca.addElement(id);
+                polaca.addElement("1");
+                polaca.addElement("-");
+                polaca.addElement(id);
+                polaca.addElement(":=");
+            } else if (op.equals("PLUS")) {
+                polaca.addElement(id);
+                polaca.addElement(parts[2]);
+                polaca.addElement("+");
+                polaca.addElement(id);
+                polaca.addElement(":=");
+            } else if (op.equals("SUB")) {
+                polaca.addElement(id);
+                polaca.addElement(parts[2]);
+                polaca.addElement("-");
+                polaca.addElement(id);
+                polaca.addElement(":=");
+            }
+        }
+        //aplicando saltos luego de crear los incrementos
+        polaca.addElement("BI");
+        int finDeCondicion = polaca.desapilarSaltoPila();
+        polaca.setElementAt(finDeCondicion, String.valueOf(polaca.getPosicionActual()));
+        int inicioDeCondicion = polaca.desapilarSaltoPila();
+        polaca.addElement(String.valueOf(inicioDeCondicion));
+
+        System.out.println("Bloque FOR Con Pasos");
+    :};
+//For sin tercer condicion, similar al while
+for_sentence ::= for_start CLOSE_BRACKET operation_line {:
+        polaca.addElement("BI");
+        int finDeCondicion = polaca.desapilarSaltoPila();
+        polaca.setElementAt(finDeCondicion, String.valueOf(polaca.getPosicionActual()));
+        int inicioDeCondicion = polaca.desapilarSaltoPila();
+        polaca.addElement(String.valueOf(inicioDeCondicion));
+        System.out.println("Bloque FOR");
+    :};
+
+
+
+
