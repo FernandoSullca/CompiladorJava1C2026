@@ -292,17 +292,35 @@ assignment ::= IDENTIFIER:id ASSIG expression:type {:
 // WRITE
 sentence ::= print_sentence {: System.out.println("End PRINT"); :};
 print_sentence ::= PRINT OPEN_BRACKET print_line CLOSE_BRACKET {: System.out.println("Bloque WRITE/PRINT"); :};
-print_line ::= IDENTIFIER:id {: System.out.println("Print id: " + id); :};
+print_line ::= IDENTIFIER:id {: 
+    System.out.println("Print id: " + id);
+    String name = id.toString();
+    if(!symTable.exists(name)){
+        requireDeclared(name);
+    }
+    polaca.addElement(name);
+    polaca.addElement("PRINT");
+    :};
 print_line ::= STRING_CONSTANT:constant {:
     System.out.println("Print STRING_CONSTANT: " + constant);
     String c = constant.toString();
     symTable.insert(c,"STRING",c,false);
+    polaca.addElement(c);
+    polaca.addElement("PRINT");    
     :};
 
 // READ
 sentence ::= read_sentence {: System.out.println("End READ"); :};
 read_sentence ::= READ OPEN_BRACKET read_line CLOSE_BRACKET {: System.out.println("Bloque READ"); :};
-read_line ::= IDENTIFIER:id {: System.out.println("Read: " + id); :};
+read_line ::= IDENTIFIER:id {: 
+    System.out.println("Read: " + id);
+    String name = id.toString();
+    if(!symTable.exists(name)){
+        requireDeclared(name);
+    }
+    polaca.addElement(name);
+    polaca.addElement("READ");
+    :};
 
 //WHILE
 sentence::=while_sentence  {: System.out.println("End WHILE"); :};

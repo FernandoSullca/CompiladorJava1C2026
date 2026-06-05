@@ -133,4 +133,7 @@ while(a < b AND c >d)
 }
 
 
+#+ --- READ Y PRINT - ERROR VARIABLE NO DECLARADA --- +#
+#+ read(variableInexistente) +#
+#+ print(variableInexistente) +#
 
