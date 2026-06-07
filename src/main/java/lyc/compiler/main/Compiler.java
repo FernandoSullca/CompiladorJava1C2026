@@ -6,6 +6,7 @@ import lyc.compiler.factories.ParserFactory;
 import lyc.compiler.files.FileOutputWriter;
 import lyc.compiler.files.IntermediateCodeGenerator;
 import lyc.compiler.files.SymbolTableGenerator;
+import lyc.compiler.intermediateCode.Polaca;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -23,6 +24,7 @@ public final class Compiler {
         }
 
         try (Reader reader = FileFactory.create(args[0])) {
+            Polaca.getInstance().clear();
             Parser parser = ParserFactory.create(reader);
             parser.parse();
             FileOutputWriter.writeOutput("symbol-table.txt", new SymbolTableGenerator());
