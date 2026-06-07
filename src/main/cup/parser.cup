@@ -287,6 +287,7 @@ assignment ::= IDENTIFIER:id ASSIG expression:type {:
                     }
                       polaca.addElement(name);
                       polaca.addElement(":=");
+                      RESULT = name;
                  :};
 
 // WRITE
@@ -436,13 +437,14 @@ if_sentence ::= IF OPEN_BRACKET condition_line CLOSE_BRACKET operation_line {:
 //FOR
 sentence ::= for_sentence {: System.out.println("End FOR"); :};
 
-for_start ::= FOR OPEN_BRACKET assignment SEMI {:
+for_start ::= FOR OPEN_BRACKET assignment:initAssign SEMI {:
         polaca.addElement("ET");
         int posSaltoIncondicional = polaca.getPosicionActual();
         polaca.apilarSaltoPila(posSaltoIncondicional - 1);
     :} condition_line SEMI {:
         int finDeCondicion = polaca.getPosicionActual();
         polaca.apilarSaltoPila(finDeCondicion - 1);
+        RESULT = initAssign;
     :};
 
 //For con tercer condicion, similar al while
@@ -488,8 +490,16 @@ for_sentence ::= for_start update:u CLOSE_BRACKET operation_line {:
 
         System.out.println("Bloque FOR Con Pasos");
     :};
-//For sin tercer condicion, similar al while
-for_sentence ::= for_start CLOSE_BRACKET operation_line {:
+//For sin tercer condicion: incremento implicito +1 usando el id de la asignacion inicial
+for_sentence ::= for_start:forInit CLOSE_BRACKET operation_line {:
+        // forInit es el identificador de la asignacion inicial (ej: indiceB en for(indiceB=0;...;))
+        String id = forInit.toString();
+        polaca.addElement(id);
+        polaca.addElement("1");
+        polaca.addElement("+");
+        polaca.addElement(id);
+        polaca.addElement(":=");
+        //aplicando saltos luego de crear los incrementos
         polaca.addElement("BI");
         int finDeCondicion = polaca.desapilarSaltoPila();
         polaca.setElementAt(finDeCondicion, String.valueOf(polaca.getPosicionActual()));
