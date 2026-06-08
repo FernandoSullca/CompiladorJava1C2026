@@ -483,8 +483,7 @@ if_sentence ::= IF {: generandoCondicion = true; :} OPEN_BRACKET condition_line 
 if_body ::= operation_line {: 
     System.out.println("Bloque IF");
     // Al terminar el IF (sin else), completamos el salto condicional falso reservado en condition_line
-    int posSalto = polaca.desapilarSaltoPila();
-    polaca.setElementAt(posSalto, String.valueOf(polaca.getPosicionActual()));
+    polaca.rellenarSaltosFalso(polaca.getPosicionActual());
 :};
 
 //If-else
