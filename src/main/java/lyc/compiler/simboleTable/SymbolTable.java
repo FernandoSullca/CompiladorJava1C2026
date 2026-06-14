@@ -74,4 +74,7 @@ public class SymbolTable {
         return out.toString();
     }
 
+    public LinkedHashMap<String, Symbol_lyc> getTable() {
+        return table;
+    }
 }
