@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import lyc.compiler.intermediateCode.Polaca;
 import lyc.compiler.simboleTable.SymbolTable;
+import lyc.compiler.simboleTable.Symbol_lyc;
 
 public class AssemblerGenerator {
 
@@ -49,11 +50,47 @@ public class AssemblerGenerator {
     // Seccion .DATA con variables de la tabla de simbolos
     private String generateData() {
         StringBuilder sb = new StringBuilder();
+        sb.append("MAXTEXTSIZE equ 50\n\n");
         sb.append(".DATA\n");
 
-        // TODO: iterar tabla de simbolos y generar las declaraciones
-        // Por ahora placeholder vacio
-        sb.append("   TODO ; variables generadas desde tabla de simbolos\n");
+        //Mimsma logica de la generacion de la tabla pero aplicando 2atributos de assembler para cada tipo de datos
+        for (Symbol_lyc symbol : symbolTable.getTable().values()) {
+            String value = symbol.getValue() == null ? "" : symbol.getValue();
+            String type = symbol.getType() == null ? "" : symbol.getType();
+
+            String name = symbol.getName();
+
+            switch (type.toUpperCase()) {
+                case "INT":
+                    sb.append("    ").append(name).append("    dd    ?\n");
+                    break;
+
+                case "CTE_INT":
+                    sb.append("    ").append(name).append("    dd    ").append(value).append("\n");
+                    break;
+
+                case "FLOAT":
+                    sb.append("    ").append(name).append("    dd    ?\n");
+                    break;
+
+                case "CTE_FLOAT":
+                    sb.append("    ").append(name).append("    dd    ").append(value).append("\n");
+                    break;
+
+                case "STRING":
+                    sb.append("    ").append(name).append("    db    MAXTEXTSIZE dup (?), '$'\n");
+                    break;
+
+                case "CTE_STRING":
+                    int len = symbol.getLength();
+                    int padding = 50 - len;
+                    sb.append("    ").append(name)
+                            .append("    db    \"").append(value).append("\",'$'")
+                            .append(padding > 0 ? ", " + padding + " dup (?)" : "")
+                            .append("\n");
+                    break;
+            }
+        }
 
         sb.append("\n");
         return sb.toString();
