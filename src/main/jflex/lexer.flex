@@ -65,7 +65,7 @@ FloatConstant = {Digit}+"."{Digit}+ | "."{Digit}+ | {Digit}+"."
 StringConstant = "\"" ([^\"])* "\""
 
 //comments de una linea o ningun caracter, no necesita cup(gramatica)
-CommentCharacters = ([^\r\n])*
+CommentCharacters = [a-zA-Z0-9áéíóúÁÉÍÓÚñÑ \t+\-*/=<>!;:,()\[\]{}_.'\"]*
 Comment = "#+" {CommentCharacters} "+#"
 
 
