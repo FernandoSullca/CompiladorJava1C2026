@@ -5,6 +5,10 @@ import lyc.compiler.simboleTable.SymbolTable;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+
 import lyc.compiler.intermediateCode.Polaca;
 import lyc.compiler.simboleTable.SymbolTable;
 import lyc.compiler.simboleTable.Symbol_lyc;
@@ -15,10 +19,12 @@ public class AssemblerGenerator {
 
     private final Polaca polaca;
     private final SymbolTable symbolTable;
-
+    private List<String> pilaSimbolos;
     public AssemblerGenerator() {
         this.polaca = Polaca.getInstance();
         this.symbolTable =  SymbolTable.getSymbolTable();
+        this.pilaSimbolos = new ArrayList<>();
+
     }
 
     @Override
@@ -42,7 +48,9 @@ public class AssemblerGenerator {
 
     // Cabeceras fijas del .asm
     private String generateHeader() {
-        return ".MODEL LARGE\n"
+        return "include macros2.asm\n" +
+                "include number.asm\n" +
+                ".MODEL LARGE\n"
                 + ".386\n"
                 + ".STACK 200h\n\n";
     }
@@ -108,9 +116,83 @@ public class AssemblerGenerator {
         // TODO: traduccion de polaca a instrucciones assembler
         sb.append("TODO    ; codigo generado desde polaca inversa\n");
 
+        ArrayDeque<String> stack = new ArrayDeque<>();
+
+        for (String token : polaca.getPolaca()) {
+            switch (token) {
+                case "PRINT": {
+                    String operand = stack.pop();
+                    sb.append(generatePrint(operand));
+                    break;
+                }
+                case "READ": {
+                    String operand = stack.pop();
+                    sb.append(generateRead(operand));
+                    break;
+                }
+                default:
+                    // Por ahora, cualquier otro token (operandos, operadores, etc.)
+                    // se apila para uso futuro. Todavia no se procesan +, -, *, /, :=
+                    stack.push(token);
+                    break;
+            }
+        }
+
         sb.append("\n");
         return sb.toString();
     }
+
+    private String resolveName(String token) {
+        if (symbolTable.exists(token)) {
+            return token;
+        }
+        if (symbolTable.exists("_" + token)) {
+            return "_" + token;
+        }
+        return token; // fallback, no deberia pasar
+    }
+
+    private String resolveType(String token) {
+        String name = resolveName(token);
+        return symbolTable.exists(name) ? symbolTable.getType(name) : "Undefine";
+    }
+
+
+    private String generatePrint(String operand) {
+        String name = resolveName(operand);
+        String type = resolveType(operand);
+        if (type == null) type = "";
+
+        switch (type.toUpperCase()) {
+            case "STRING":
+            case "CTE_STRING":
+                return "    displayString " + name + "\n";
+            case "INT":
+            case "CTE_INT":
+                return "    DisplayInteger " + name + "\n";
+            case "FLOAT":
+            case "CTE_FLOAT":
+                return "    DisplayFloat " + name + ", 4\n";
+            default:
+                return "    ; PRINT desconocido para " + name + "\n";
+        }
+    }
+
+    private String generateRead(String operand) {
+        String name = resolveName(operand);
+        String type = resolveType(operand);
+        if (type == null) type = "";
+
+        switch (type.toUpperCase()) {
+            case "INT":
+                return "    GetInteger " + name + "\n";
+            case "FLOAT":
+                return "    GetFloat " + name + "\n";
+            default:
+                return "    ; READ desconocido para " + name + "\n";
+        }
+    }
+
 
     // Pie fijo del .asm
     private String generateFooter() {
