@@ -130,8 +130,9 @@ public class Polaca {
     }
 
     public void rellenarSaltosFalso(int destino) {
-        while (!saltosFalso.isEmpty()) {
-            setElementAt(saltosFalso.pop(), String.valueOf(destino));
+        if (!saltosFalso.isEmpty()) {
+            int posicionARellenar = saltosFalso.pop(); // Solo saca EL ÚLTIMO
+            setElementAt(posicionARellenar, String.valueOf(destino));
         }
     }
 

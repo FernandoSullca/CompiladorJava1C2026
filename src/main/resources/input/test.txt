@@ -56,6 +56,29 @@ else
     print("LIT_IF_MENOR_IGUAL")
 }
 
+#+ --- IF ANIDADO CON ELSE --- +#
+if (contador > limite)
+{
+    print("LIT_IF_MAYOR")
+}
+else if (contador + 1 > limite)
+{
+    print("IF anidado")
+}
+else
+{
+    print("else del IF anidado")
+}
+#+ --- IF ANIDADO DENTRO DE OTRO IF --- +#
+if (contador > limite)
+{
+    if (contador + 2 > limite)
+    {
+        print("LIT_IF_MAYOR + 2")
+    }
+    print("LIT_IF_MAYOR")
+}
+
 #+ --- WHILE CON CONDICION CLASICA --- +#
 while (contador > limite)
 {
