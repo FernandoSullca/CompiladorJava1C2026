@@ -164,6 +164,13 @@ public class AssemblerGenerator {
                     stack.push(aux);
                     break;
                 }
+                
+                case ":=": {
+                    String destino = stack.pop();
+                    String valor = stack.pop();
+                    sb.append("    MOV ").append(destino).append(", ").append(valor).append("\n");
+                    break;
+                }
 
                 default:
                     // Por ahora, cualquier otro token (operandos, operadores, etc.)
