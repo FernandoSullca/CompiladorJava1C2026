@@ -13,9 +13,13 @@ import lyc.compiler.intermediateCode.Polaca;
 import lyc.compiler.simboleTable.SymbolTable;
 import lyc.compiler.simboleTable.Symbol_lyc;
 
+
+
 public class AssemblerGenerator {
 
     private static AssemblerGenerator symt;
+
+    List<String> auxVariables;
 
     private final Polaca polaca;
     private final SymbolTable symbolTable;
@@ -24,15 +28,18 @@ public class AssemblerGenerator {
         this.polaca = Polaca.getInstance();
         this.symbolTable =  SymbolTable.getSymbolTable();
         this.pilaSimbolos = new ArrayList<>();
-
+        this.auxVariables = new ArrayList<>();
     }
+
+
 
     @Override
     public String toString() {
+        String code = generateCode(); // al recorrer la polaca, llena auxVariables
         StringBuilder sb = new StringBuilder();
         sb.append(generateHeader());
         sb.append(generateData());
-        sb.append(generateCode());
+        sb.append(code);
         sb.append(generateFooter());
         return sb.toString();
     }
@@ -57,6 +64,7 @@ public class AssemblerGenerator {
 
     // Seccion .DATA con variables de la tabla de simbolos
     private String generateData() {
+
         StringBuilder sb = new StringBuilder();
         sb.append("MAXTEXTSIZE equ 50\n\n");
         sb.append(".DATA\n");
@@ -97,9 +105,14 @@ public class AssemblerGenerator {
                             .append(padding > 0 ? ", " + padding + " dup (?)" : "")
                             .append("\n");
                     break;
-            }
+                }
+            
+                    
         }
-
+        for (String aux : auxVariables) {
+            sb.append("    ").append(aux).append("    dd    ?\n");
+        }
+        sb.append("    ").append("R1").append("    dd    ?\n"); // R1 Tipo int para calculos
         sb.append("\n");
         return sb.toString();
     }
@@ -130,6 +143,28 @@ public class AssemblerGenerator {
                     sb.append(generateRead(operand));
                     break;
                 }
+
+                case "+": case "-": case "*": case "/": {
+                    String derecho = stack.pop();
+                    String izquierdo = stack.pop();
+                    String mnemonico = switch (token) {
+                        case "+" -> "ADD";
+                        case "-" -> "SUB";
+                        case "*" -> "MUL";
+                        case "/" -> "DIV";
+                        default -> throw new IllegalStateException();
+
+                    };
+                    
+                    String aux = polaca.generateTemporal();
+                    sb.append("    MOV R1, ").append(izquierdo).append("\n");
+                    sb.append("    ").append(mnemonico).append(" R1, ").append(derecho).append("\n");
+                    sb.append("    MOV ").append(aux).append(", R1\n");
+                    auxVariables.add(aux);
+                    stack.push(aux);
+                    break;
+                }
+
                 default:
                     // Por ahora, cualquier otro token (operandos, operadores, etc.)
                     // se apila para uso futuro. Todavia no se procesan +, -, *, /, :=
