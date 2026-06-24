@@ -169,66 +169,150 @@ update ::=
     | IDENTIFIER:id SUB INTEGER_CONSTANT:c {: RESULT = id.toString() + " SUB " + c.toString(); :}
     ;
 
-expression ::= expression PLUS term {: System.out.println("+");
- polaca.addElement("+");:};
-expression ::= expression SUB term {: System.out.println("-");
-polaca.addElement("-");:};
-expression ::= expression MORETHAN term {: System.out.println(">");
- if (generandoCondicion) { reservarSaltoComparacion("BLE"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BLE"); }
+expression ::= expression:e1 PLUS term:t1 
+    {: 
+        // Validación adicional: ¿Se pueden sumar tipos distintos?
+        if(!e1.toString().equals(t1.toString())) {
+            semanticError("Operación aritmética entre tipos distintos: " + e1 + " y " + t1);
+        }
+        polaca.addElement("+");
+        RESULT = e1; // Propagamos el tipo
+    :};
+expression ::= expression:e1 SUB term:t1 
+    {: 
+        // Validación adicional: ¿Se pueden sumar tipos distintos?
+        if(!e1.toString().equals(t1.toString())) {
+            semanticError("Operación aritmética entre tipos distintos: " + e1 + " y " + t1);
+        }
+        polaca.addElement("-");
+        RESULT = e1; // Propagamos el tipo
+    :};
+
+expression ::= expression:e1 MORETHAN term:t1 {: 
+    System.out.println(">");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BLE"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BLE"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression MOREEQUALTHAN term {: System.out.println(">=");
- if (generandoCondicion) { reservarSaltoComparacion("BLT"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BLT"); }
+
+expression ::= expression:e1 MOREEQUALTHAN term:t1 {: 
+    System.out.println(">=");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BLT"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BLT"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression LESSTHAN term {: System.out.println("<");
- if (generandoCondicion) { reservarSaltoComparacion("BGE"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BGE"); }
+
+expression ::= expression:e1 LESSTHAN term:t1 {: 
+    System.out.println("<");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BGE"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BGE"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression LESSEQUALTHAN term {: System.out.println("<=");
- if (generandoCondicion) { reservarSaltoComparacion("BGT"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BGT"); }
+
+expression ::= expression:e1 LESSEQUALTHAN term:t1 {: 
+    System.out.println("<=");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BGT"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BGT"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression EQUAL term {: System.out.println("==");
- if (generandoCondicion) { reservarSaltoComparacion("BNE"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BNE"); }
+
+expression ::= expression:e1 EQUAL term:t1 {: 
+    System.out.println("==");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BNE"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BNE"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression NOTEQUAL term {: System.out.println("!=");
- if (generandoCondicion) { reservarSaltoComparacion("BEQ"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BEQ"); }
+
+expression ::= expression:e1 NOTEQUAL term:t1 {: 
+    System.out.println("!=");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BEQ"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BEQ"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
+
 expression ::= term :t {: System.out.println("Expression = Term");
                           RESULT = t;:};
-term ::= term MULT factor {: System.out.println("*");
- polaca.addElement("*");
-:};
-term ::= term DIV factor {: System.out.println("/");
- polaca.addElement("/"); :};
+term ::= term:t1 MULT factor:f1 
+    {: 
+        // 1. Validar que t1 y f1 sean del mismo tipo (ej: no multiplicar INT por STRING)
+        if(!t1.toString().equals(f1.toString())) {
+            semanticError("Tipos incompatibles en multiplicación: " + t1 + " * " + f1);
+        }
+        System.out.println("*");
+        polaca.addElement("*"); 
+        // 2. Propagar el tipo resultante al nivel superior
+        RESULT = t1; 
+    :};
+term ::= term:t1 DIV factor:f1 
+    {: 
+        if(!t1.toString().equals(f1.toString())) {
+            semanticError("Tipos incompatibles en división: " + t1 + " / " + f1);
+        }
+        System.out.println("/");
+        polaca.addElement("/"); 
+        RESULT = t1; 
+    :};
 term ::= factor:f {:
                 System.out.println("Term = factor");
                 RESULT = f;
                 :};
-factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id);
-                            String name = id.toString();
+factor ::= IDENTIFIER:id 
+    {: 
+        String name = id.toString();
+        // 1. Verificar que la variable exista
+        if(!symTable.exists(name)){ 
+            requireDeclared(name); 
+        }
+        // 2. Agregar a la polaca
+        polaca.addElement(name);
+        
+        // 3. RETORNAR el tipo para que suba por term y expression
+        RESULT = symTable.getType(name); 
+        System.out.println("Id: " + name + " (Tipo: " + RESULT + ")");
+    :};
 
-                            if(!symTable.exists(name)) {
-                                    // Si no existe (caso de los IF/WHILE con variables nuevas), la creamos.
-
-                                    symTable.insert(name, "", "", true);
-                                    System.out.println("Alta por uso (Factor): " + name);
-                                    RESULT = "UNDEFINED";
-                                } else {
-                                    // Si ya existe (ya pasó por INIT o es una asignación en curso),
-                                    // solo recuperamos su tipo actual.
-                                    String existingType = symTable.getType(name);
-                                    // Si el tipo existe pero está vacío (por un error previo),
-                                    // podrías devolver "UNDEFINED" para que el assignment la complete.
-                                    RESULT = (existingType.equals("")) ? "UNDEFINED" : existingType;
-                            }
-                            //Guardado de polaca por factor
-                            polaca.addElement(name);
-
-                            :};
 factor ::= INTEGER_CONSTANT:constant {:
                             System.out.println("Constant: " + constant );
                             symTable.insert(constant.toString(),"INT",constant.toString(),false);
@@ -271,7 +355,12 @@ factor ::= STRING_CONSTANT:constant {:
                         RESULT = "STRING";
                         polaca.addElement(constant.toString());
                                                         :};
-factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
+factor ::= OPEN_BRACKET expression:e CLOSE_BRACKET 
+{: 
+    System.out.println("Factor = (Expression)"); 
+    // Importante: El factor ahora toma el tipo de la expresión interna
+    RESULT = e; 
+:};
 
 // condicionales (recursión a la derecha para evitar conflictos shift/reduce)
 condition_line ::= condition_or {: rellenarVerdaderoPendiente = true; :};
@@ -335,32 +424,29 @@ operation_line ::= OPEN_KEY sentences CLOSE_KEY {: System.out.println("Bloque de
 // Assignments
 sentence ::= assignment {: System.out.println("End Asignacion"); :};
 
-assignment ::= IDENTIFIER:id ASSIG expression:type {:
-
-                    System.out.println("Assignment " + id + " := expression");
-                    String name = id.toString();
-                    String typeS = (type != null) ? type.toString() : "UNDEFINED";
-                    if (symTable.exists(name)) {
-                        // CASO 1: La variable ya existe (declarada en INIT).
-                        System.out.println("Asignación a variable existente: " + name);
-                        //Verificar si corresponde update de la variable para contenido en la tabla de simbolos
-                    }
-                    // verificacion extra para asignar en la tabla de simbolo solo
-                    // identificadores previamente creador en el bloque init del compilador,
-                    // lanza excepcion y detiene compilacion
-                    else if (typeS != null && (typeS.equals("STRING") || typeS.equals("INT") || typeS.equals("FLOAT"))) {
-                        // CASO 2: No existe pero la autodeclaramos por uso.
-                        symTable.insert(name, typeS, "", true);
-                        System.out.println("Autodeclarada en ejecución: " + name + " de tipo " + typeS);
-                    }
-                    else {
-                        // CASO 3: No existe y no tenemos tipo para autodeclarar. Error de compilacion.
-                        requireDeclared(name);
-                    }
-                      polaca.addElement(name);
-                      polaca.addElement(":=");
-                      RESULT = name;
-                 :};
+assignment ::= IDENTIFIER:id ASSIG expression:expType  
+{:
+        String idName = id.toString();
+        // 1. Validar que la variable de la izquierda esté declarada o dar de alta por uso
+        // 2. Obtener el tipo de la variable de la izquierda
+        String idType = symTable.getType(idName);
+        idType = idType.equals("Undefined") ? expType.toString() : idType;
+        if(!symTable.exists(idName)){
+            symTable.insert(idName, expType.toString(), "", true); 
+            System.out.println("Alta por uso: " + idName + " como " + expType);
+        }
+        // 3. CHEQUEO SEMÁNTICO: Comparar tipos
+        // expType vendrá como "INT", "FLOAT" o "STRING" desde la regla expression
+        if (!idType.equals(expType)) {
+            semanticError("Tipos incompatibles: No se puede asignar " + expType + 
+                          " a la variable '" + idName + "' que es de tipo " + idType);
+        }        
+        // 4. Generación de código intermedio
+        polaca.addElement(idName);
+        polaca.addElement(":=");
+        System.out.println("Asignación válida: " + idName + " := " + expType);
+        RESULT = idName;
+    :};
 
 // WRITE
 sentence ::= print_sentence {: System.out.println("End PRINT"); :};

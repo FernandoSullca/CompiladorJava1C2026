@@ -2,7 +2,7 @@
 #+ Objetivo: NO declarar todo en init para verificar altas por uso +#
 
 init {
-    contador,limite,paso,contador4 : Int
+    contador,limite,paso,contador4,a,b,c,d,e : Int
     mensaje : String
     #+ identificadorQueSuperaCuarentaCaracteresFalla : String +# 
     #+ En caso de descomentar linea 7 falla por longiut del identificador +# 
@@ -30,11 +30,9 @@ contador4 = 32767 #+ En caso de 32768 falla por tamaño del integer (16 bits)+#
 puntoflotante4 = 65504.0 #+ En caso de 65505 falla por tamaño del float (16 bits)+# 
 
 #+ --- NO DECLARADAS (deben aparecer por uso/asignacion) --- +#
-resultado = base * (factor-21) / 4
+resultado = 21 / 4
 resultado = 27 - resultado
-resultado = acumulado + 500
 resultado = 34 * 3
-resultado = divisorA / divisorB
 textoSalida = "LIT STR ASIGN"
 pesoInferido = 35
 
@@ -160,3 +158,7 @@ while(a < b AND c >d)
 #+ read(variableInexistente) +#
 #+ print(variableInexistente) +#
 
+#+ --- CASOS PARA PROBAR ERROR SEMÁNTICO EN ASIGNACION (id con id) --- +#
+#+ precio = contador +#  #+ Debería fallar: FLOAT = INT +#
+#+ contador = precio +#  #+ Debería fallar: INT = FLOAT +#
+#+ mensaje = contador +# #+ Debería fallar: STRING = INT +#
