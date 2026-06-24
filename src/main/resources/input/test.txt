@@ -162,3 +162,8 @@ while(a < b AND c >d)
 #+ precio = contador +#  #+ Debería fallar: FLOAT = INT +#
 #+ contador = precio +#  #+ Debería fallar: INT = FLOAT +#
 #+ mensaje = contador +# #+ Debería fallar: STRING = INT +#
+
+#+ --- CASOS PARA PROBAR ERROR SEMÁNTICO EN ASIGNACION (id con cte) --- +#
+#+ precio = "contador" +#  #+ Debería fallar: FLOAT = STRING +#
+#+ precio = 10 +#  #+ Debería fallar: FLOAT = INT +#
+#+ mensaje = 10 +# #+ Debería fallar: STRING = INT +#
