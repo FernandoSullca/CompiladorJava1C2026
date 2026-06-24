@@ -100,30 +100,13 @@ while (itemListaB in [1+1,2*2,3/3])
 read(limite)
 
 #+ --- FOR (variables por uso) --- +#
-for (indiceA=0;indiceA<5;indiceA++)
-{
-    print(indiceA)
-}
+FOR i = 1 TO 10 STEP 2
+   print(i)
+NEXT i
 
-for (indiceB=0;indiceB<5;)
-{
-    print(indiceB)
-}
-
-for (indiceC=0;indiceC<5;indiceC--)
-{
-    print(indiceC)
-}
-
-for (indiceD=0;indiceD<5;indiceD+6)
-{
-    print(indiceD)
-}
-
-for (indiceE=0;indiceE<5;indiceE-2)
-{
-    print(indiceE)
-}
+FOR i = 1 TO 5
+   print(i)
+NEXT i 
 
 #+ --- CONDICIONALES --- +#
 
@@ -170,3 +153,6 @@ while(a < b AND c >d)
 
 #+ --- CASOS PARA PROBAR Validación de igual tipo en condiciones --- +#
 #+if( mensaje> contador){    print("esta mal la validacion de igual tipo en condiciones")}+#
+
+#+ --- CASOS PARA PROBAR Validación de igual tipo en FOR --- +#
+#+ FOR precio = 1 TO 5   print(i)NEXT i +#

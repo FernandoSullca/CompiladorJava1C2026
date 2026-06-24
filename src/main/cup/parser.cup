@@ -109,9 +109,9 @@ terminal OPEN_ARRAY;
 terminal CLOSE_ARRAY;
 terminal IN;
 terminal FOR;
-terminal SEMI;
-terminal INC;
-terminal DEC;
+terminal TO;
+terminal STEP;
+terminal NEXT;
 terminal AND;
 terminal OR;
 terminal NOT;
@@ -145,8 +145,7 @@ non terminal if_sentence;
 non terminal if_body;
 non terminal if_else_bridge;
 non terminal for_sentence;
-non terminal for_start;
-non terminal update;
+non terminal for_step;
 non terminal especial_condition_line;
 non terminal expression_array;
 
@@ -161,13 +160,6 @@ sentences ::= sentences sentence
             ;
 
 first_sentence ::= sentence {: rellenarVerdaderoSiPendiente(); :};
-//condicionales de autoinclemento para for
-update ::=
-      IDENTIFIER:id INC {: RESULT = id.toString() + " INC"; :}
-    | IDENTIFIER:id DEC {: RESULT = id.toString() + " DEC"; :}
-    | IDENTIFIER:id PLUS INTEGER_CONSTANT:c {: RESULT = id.toString() + " PLUS " + c.toString(); :}
-    | IDENTIFIER:id SUB INTEGER_CONSTANT:c {: RESULT = id.toString() + " SUB " + c.toString(); :}
-    ;
 
 expression ::= expression:e1 PLUS term:t1 
     {: 
@@ -603,75 +595,50 @@ if_body ::= operation_line
         polaca.setElementAt(saltoFinIF, String.valueOf(polaca.getPosicionActual()));
     :};
 
-//FOR
+// FOR - TEMA ESPECIAL
 sentence ::= for_sentence {: System.out.println("End FOR"); :};
 
-for_start ::= FOR OPEN_BRACKET assignment:initAssign SEMI {:
+for_sentence ::= FOR assignment:counterName TO expression:exp2 
+    {:
+        // 1. alta por uso y validacion tipo variable resuelto por 'assignment'
+
+        // 2. Etiqueta de inicio del bucle
         polaca.addElement("ET");
-        int posSaltoIncondicional = polaca.getPosicionActual();
-        polaca.apilarSaltoPila(posSaltoIncondicional - 1);
-        generandoCondicion = true;
-    :} condition_line SEMI {:
-        generandoCondicion = false;
-        RESULT = initAssign;
+        int inicioLoop = polaca.getPosicionActual();
+        polaca.apilarSaltoPila(inicioLoop - 1);
+        
+        // 3. Preparar condición de salida (id > exp2)
+        // El valor de exp2 ya está en la polaca por la regla 'expression'
+        String name = counterName.toString();
+        polaca.addElement(name);
+        reservarSaltoComparacion("BGT"); // Polaca: ... ET exp2 id CMP BGT
+        
+        RESULT = name; // Pasamos el nombre para validar en el NEXT
+    :}
+    for_step sentences NEXT IDENTIFIER:idNext
+    {:
+        String nameFor = (String)RESULT;
+        String nameNext = idNext.toString();
+        
+        // 4. Validación variable en NEXT debe ser la misma que la variable en FOR
+        if(!nameFor.equals(nameNext)) {
+            semanticError("Variable en NEXT (" + nameNext + ") no coincide con FOR (" + nameFor + ")");
+        }
+        
+        // 5. Incremento: id = id + step
+        polaca.addElement(nameFor); // Destino
+        polaca.addElement(nameFor); // Operando 1
+        // (El valor del step ya entró por la regla for_step)
+        polaca.addElement("+");
+        polaca.addElement(":=");
+        
+        // 6. Salto al inicio y cierre
+        polaca.addElement("BI");
+        int posET = polaca.desapilarSaltoPila();
+        polaca.addElement(String.valueOf(posET));
+        
+        polaca.rellenarSaltosFalso(polaca.getPosicionActual());
     :};
 
-//For con tercer condicion, similar al while
-for_sentence ::= for_start update:u CLOSE_BRACKET operation_line {:
-        if (u != null) {
-            //U es el RESULT asignado a la reglas
-            String updateStr = u.toString();
-            String[] parts = updateStr.split(" ");
-            String id = parts[0];
-            String op = parts[1];
-            if (op.equals("INC")) {
-                polaca.addElement(id);
-                polaca.addElement("1");
-                polaca.addElement("+");
-                polaca.addElement(id);
-                polaca.addElement(":=");
-            } else if (op.equals("DEC")) {
-                polaca.addElement(id);
-                polaca.addElement("1");
-                polaca.addElement("-");
-                polaca.addElement(id);
-                polaca.addElement(":=");
-            } else if (op.equals("PLUS")) {
-                polaca.addElement(id);
-                polaca.addElement(parts[2]);
-                polaca.addElement("+");
-                polaca.addElement(id);
-                polaca.addElement(":=");
-            } else if (op.equals("SUB")) {
-                polaca.addElement(id);
-                polaca.addElement(parts[2]);
-                polaca.addElement("-");
-                polaca.addElement(id);
-                polaca.addElement(":=");
-            }
-        }
-        //aplicando saltos luego de crear los incrementos
-        polaca.addElement("BI");
-        int salidaFor = polaca.getPosicionActual();
-        polaca.rellenarSaltosFalso(salidaFor);
-        int inicioDeCondicion = polaca.desapilarSaltoPila();
-        polaca.addElement(String.valueOf(inicioDeCondicion));
-        System.out.println("Bloque FOR Con Pasos");
-    :};
-//For sin tercer condicion: incremento implicito +1 usando el id de la asignacion inicial
-for_sentence ::= for_start:forInit CLOSE_BRACKET operation_line {:
-        // forInit es el identificador de la asignacion inicial (ej: indiceB en for(indiceB=0;...;))
-        String id = forInit.toString();
-        polaca.addElement(id);
-        polaca.addElement("1");
-        polaca.addElement("+");
-        polaca.addElement(id);
-        polaca.addElement(":=");
-        //aplicando saltos luego de crear los incrementos
-        polaca.addElement("BI");
-        int salidaFor = polaca.getPosicionActual();
-        polaca.rellenarSaltosFalso(salidaFor);
-        int inicioDeCondicion = polaca.desapilarSaltoPila();
-        polaca.addElement(String.valueOf(inicioDeCondicion));
-        System.out.println("Bloque FOR");
-    :};
+for_step ::= STEP expression {: /* El valor ya está en polaca por 'expression' */ :}
+           | {: polaca.addElement("1"); // Paso por defecto si no hay STEP :};
