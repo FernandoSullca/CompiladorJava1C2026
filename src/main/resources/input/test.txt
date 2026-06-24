@@ -2,7 +2,7 @@
 #+ Objetivo: NO declarar todo en init para verificar altas por uso +#
 
 init {
-    contador,limite,paso,contador4,a,b,c,d,e : Int
+    contador,limite,paso,contador4,a,b,c,d : Int
     mensaje : String
     #+ identificadorQueSuperaCuarentaCaracteresFalla : String +# 
     #+ En caso de descomentar linea 7 falla por longiut del identificador +# 
@@ -143,10 +143,7 @@ if (a > b OR c > d)
     print(" A mayor a B O C mayor a D")
 }
 
-if (NOT e)
-{
-    print(" Not E")
-}
+
 
 while(a < b AND c >d)
 {
@@ -167,3 +164,9 @@ while(a < b AND c >d)
 #+ precio = "contador" +#  #+ Debería fallar: FLOAT = STRING +#
 #+ precio = 10 +#  #+ Debería fallar: FLOAT = INT +#
 #+ mensaje = 10 +# #+ Debería fallar: STRING = INT +#
+
+#+ --- CASOS PARA PROBAR Validación de ID no declarada pero usada --- +#
+#+ if (NOT e){    print(" Not E")} +#
+
+#+ --- CASOS PARA PROBAR Validación de igual tipo en condiciones --- +#
+#+if( mensaje> contador){    print("esta mal la validacion de igual tipo en condiciones")}+#
