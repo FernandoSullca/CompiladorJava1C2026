@@ -26,11 +26,9 @@ public class AssemblerGenerator {
 
     private final Polaca polaca;
     private final SymbolTable symbolTable;
-    private List<String> pilaSimbolos;
     public AssemblerGenerator() {
         this.polaca = Polaca.getInstance();
         this.symbolTable =  SymbolTable.getSymbolTable();
-        this.pilaSimbolos = new ArrayList<>();
         this.auxVariables = new ArrayList<>();
     }
 
@@ -136,8 +134,23 @@ public class AssemblerGenerator {
 
         ArrayDeque<String> stack = new ArrayDeque<>();
 
+          // Pre-pasada: detectar que indices de la polaca son destino de algun salto
+        Set<Integer> jumpTargets = new HashSet<>();
+        for (int i = 0; i < polaca.getPolaca().size(); i++) {
+            if (isBranchOp(polaca.getPolaca().get(i)) && i + 1 < polaca.getPolaca().size()) {
+            jumpTargets.add(Integer.parseInt(polaca.getPolaca().get(i + 1)));
+            }
+    }
+
         for (int i = 0; i < polaca.getPolaca().size(); i++) {
             String token = polaca.getPolaca().get(i);
+
+        // Si esta posicion es destino de un salto, emitir la etiqueta antes de procesar el token
+        if (jumpTargets.contains(i)) {
+            sb.append(labelSaltos(i)).append(":\n");
+        }
+
+
             switch (token) {
                 case "PRINT": {
                     String operand = stack.pop();
@@ -192,13 +205,30 @@ public class AssemblerGenerator {
                 sb.append("    ").append(jumpMnemonic(token)).append(" ").append(labelSaltos(destino)).append("\n");
                 break;
             }
-                default:
+
+           // Salto incondicional (if/else, cierre de while/for)
+            case "BI": {
+                int destino = Integer.parseInt(polaca.getPolaca().get(++i));
+                sb.append("    JMP ").append(labelSaltos(destino)).append("\n");
+                break;
+            }
+
+            default:
                     // Por ahora, cualquier otro token (operandos, operadores, etc.)
                     // se apila para uso futuro. Todavia no se procesan +, -, *, /, :=
                     stack.push(token);
                     break;
             }
+            
+        
+
         }
+        
+        //Si algun salto apunta al final de la polaca (no hay token ahi), la etiqueta se emite al cierre
+        if (jumpTargets.contains(polaca.getPolaca().size())) {
+        sb.append(labelSaltos(polaca.getPolaca().size())).append(":\n");
+    }
+
 
         sb.append("\n");
         return sb.toString();
@@ -254,7 +284,7 @@ public class AssemblerGenerator {
         switch (type.toUpperCase()) {
             case "STRING":
             case "CTE_STRING":
-                return "    displayString " + name + "\n";
+                return "    displayString \""+ name + "\"\n";
             case "INT":
             case "CTE_INT":
                 return "    DisplayInteger " + name + "\n";
