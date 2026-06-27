@@ -16,8 +16,6 @@ import lyc.compiler.intermediateCode.Polaca;
 import lyc.compiler.simboleTable.SymbolTable;
 import lyc.compiler.simboleTable.Symbol_lyc;
 
-
-
 public class AssemblerGenerator {
 
     private static AssemblerGenerator symt;
@@ -26,13 +24,12 @@ public class AssemblerGenerator {
 
     private final Polaca polaca;
     private final SymbolTable symbolTable;
+
     public AssemblerGenerator() {
         this.polaca = Polaca.getInstance();
-        this.symbolTable =  SymbolTable.getSymbolTable();
+        this.symbolTable = SymbolTable.getSymbolTable();
         this.auxVariables = new ArrayList<>();
     }
-
-
 
     @Override
     public String toString() {
@@ -45,14 +42,14 @@ public class AssemblerGenerator {
         return sb.toString();
     }
 
-    public static AssemblerGenerator getGenerator(){
-        if (symt == null){
+    public static AssemblerGenerator getGenerator() {
+        if (symt == null) {
             symt = new AssemblerGenerator();
         }
         return symt;
     }
 
-    //Esqueleto de archivo assembler
+    // Esqueleto de archivo assembler
 
     // Cabeceras fijas del .asm
     private String generateHeader() {
@@ -70,7 +67,8 @@ public class AssemblerGenerator {
         sb.append("MAXTEXTSIZE equ 50\n\n");
         sb.append(".DATA\n");
 
-        //Mimsma logica de la generacion de la tabla pero aplicando 2atributos de assembler para cada tipo de datos
+        // Mimsma logica de la generacion de la tabla pero aplicando 2atributos de
+        // assembler para cada tipo de datos
         for (Symbol_lyc symbol : symbolTable.getTable().values()) {
             String value = symbol.getValue() == null ? "" : symbol.getValue();
             String type = symbol.getType() == null ? "" : symbol.getType();
@@ -106,9 +104,8 @@ public class AssemblerGenerator {
                             .append(padding > 0 ? ", " + padding + " dup (?)" : "")
                             .append("\n");
                     break;
-                }
-            
-                    
+            }
+
         }
         for (String aux : auxVariables) {
             sb.append("    ").append(aux).append("    dd    ?\n");
@@ -127,29 +124,27 @@ public class AssemblerGenerator {
         sb.append("    mov DS, AX\n");
         sb.append("    mov es, ax\n\n");
 
-
-        
         // TODO: traduccion de polaca a instrucciones assembler
         sb.append("TODO    ; codigo generado desde polaca inversa\n");
 
         ArrayDeque<String> stack = new ArrayDeque<>();
 
-          // Pre-pasada: detectar que indices de la polaca son destino de algun salto
+        // Pre-pasada: detectar que indices de la polaca son destino de algun salto
         Set<Integer> jumpTargets = new HashSet<>();
         for (int i = 0; i < polaca.getPolaca().size(); i++) {
             if (isBranchOp(polaca.getPolaca().get(i)) && i + 1 < polaca.getPolaca().size()) {
-            jumpTargets.add(Integer.parseInt(polaca.getPolaca().get(i + 1)));
+                jumpTargets.add(Integer.parseInt(polaca.getPolaca().get(i + 1)));
             }
-    }
+        }
 
         for (int i = 0; i < polaca.getPolaca().size(); i++) {
             String token = polaca.getPolaca().get(i);
 
-        // Si esta posicion es destino de un salto, emitir la etiqueta antes de procesar el token
-        if (jumpTargets.contains(i)) {
-            sb.append(labelSaltos(i)).append(":\n");
-        }
-
+            // Si esta posicion es destino de un salto, emitir la etiqueta antes de procesar
+            // el token
+            if (jumpTargets.contains(i)) {
+                sb.append(labelSaltos(i)).append(":\n");
+            }
 
             switch (token) {
                 case "PRINT": {
@@ -163,7 +158,10 @@ public class AssemblerGenerator {
                     break;
                 }
 
-                case "+": case "-": case "*": case "/": {
+                case "+":
+                case "-":
+                case "*":
+                case "/": {
                     String derecho = stack.pop();
                     String izquierdo = stack.pop();
                     String mnemonico = switch (token) {
@@ -174,7 +172,7 @@ public class AssemblerGenerator {
                         default -> throw new IllegalStateException();
 
                     };
-                    
+
                     String aux = polaca.generateTemporal();
                     sb.append("    MOV R1, ").append(izquierdo).append("\n");
                     sb.append("    ").append(mnemonico).append(" R1, ").append(derecho).append("\n");
@@ -183,82 +181,105 @@ public class AssemblerGenerator {
                     stack.push(aux);
                     break;
                 }
-                
+
                 case ":=": {
                     String destino = stack.pop();
                     String valor = stack.pop();
                     sb.append("    MOV ").append(destino).append(", ").append(valor).append("\n");
                     break;
                 }
-                
-              case "CMP": {
-                String derecho = stack.pop();
-                String izquierdo = stack.pop();
-                sb.append("    MOV R1, ").append(izquierdo).append("\n");
-                sb.append("    CMP R1, ").append(derecho).append("\n");
-                break;
-            }
 
-            // Saltos condicionales: el token siguiente es el indice (en la polaca) destino
-            case "BLE": case "BLT": case "BGE": case "BGT": case "BEQ": case "BNE": {
-                int destino = Integer.parseInt(polaca.getPolaca().get(++i));
-                sb.append("    ").append(jumpMnemonic(token)).append(" ").append(labelSaltos(destino)).append("\n");
-                break;
-            }
+                case "CMP": {
+                    String derecho = stack.pop();
+                    String izquierdo = stack.pop();
+                    sb.append("    MOV R1, ").append(izquierdo).append("\n");
+                    sb.append("    CMP R1, ").append(derecho).append("\n");
+                    break;
+                }
 
-           // Salto incondicional (if/else, cierre de while/for)
-            case "BI": {
-                int destino = Integer.parseInt(polaca.getPolaca().get(++i));
-                sb.append("    JMP ").append(labelSaltos(destino)).append("\n");
-                break;
-            }
+                // Saltos condicionales: el token siguiente es el indice (en la polaca) destino
+                case "BLE":
+                case "BLT":
+                case "BGE":
+                case "BGT":
+                case "BEQ":
+                case "BNE": {
+                    int destino = Integer.parseInt(polaca.getPolaca().get(++i));
+                    sb.append("    ").append(jumpMnemonic(token)).append(" ").append(labelSaltos(destino)).append("\n");
+                    if (jumpTargets.contains(i)) {
+                        sb.append(labelSaltos(i)).append(":\n");
+                    }
+                    break;
+                }
 
-            default:
+                // Salto incondicional (if/else, cierre de while/for)
+                case "BI": {
+                    int destino = Integer.parseInt(polaca.getPolaca().get(++i));
+                    sb.append("    JMP ").append(labelSaltos(destino)).append("\n");
+                    if (jumpTargets.contains(i)) {
+                        sb.append(labelSaltos(i)).append(":\n");
+                    }
+                    break;
+                }
+
+                // Marca de inicio de bucle (while/for): no genera instruccion, solo recibe
+                // etiqueta
+                case "ET":
+                    break;
+
+                default:
                     // Por ahora, cualquier otro token (operandos, operadores, etc.)
                     // se apila para uso futuro. Todavia no se procesan +, -, *, /, :=
                     stack.push(token);
                     break;
             }
-            
-        
 
         }
-        
-        //Si algun salto apunta al final de la polaca (no hay token ahi), la etiqueta se emite al cierre
-        if (jumpTargets.contains(polaca.getPolaca().size())) {
-        sb.append(labelSaltos(polaca.getPolaca().size())).append(":\n");
-    }
 
+        // Si algun salto apunta al final de la polaca (no hay token ahi), la etiqueta
+        // se emite al cierre
+        if (jumpTargets.contains(polaca.getPolaca().size()))
+
+        {
+            sb.append(labelSaltos(polaca.getPolaca().size())).append(":\n");
+        }
 
         sb.append("\n");
         return sb.toString();
     }
 
-        private boolean isBranchOp(String token) {
-            switch (token) {
-                case "BLE": case "BLT": case "BGE": case "BGT": case "BEQ": case "BNE": case "BI":
-                    return true;
-                default:
-                    return false;
-            }
+    private boolean isBranchOp(String token) {
+        switch (token) {
+            case "BLE":
+            case "BLT":
+            case "BGE":
+            case "BGT":
+            case "BEQ":
+            case "BNE":
+            case "BI":
+                return true;
+            default:
+                return false;
         }
+    }
 
-        private String jumpMnemonic(String token) {
-            return switch (token) {
-                case "BLE" -> "JNA";
-                case "BLT" -> "JNAE";
-                case "BGE" -> "JAE";
-                case "BGT" -> "JA";
-                case "BEQ" -> "JE";
-                case "BNE" -> "JNE";
-                default -> throw new IllegalStateException("Operador de salto desconocido: " + token);
-            };
-        }
- // En la polaca inversa vienen saltos numericos adaptamos para que sea una etiqueta string
-        private String labelSaltos(int index) {
-            return "L" + index;
-        }
+    private String jumpMnemonic(String token) {
+        return switch (token) {
+            case "BLE" -> "JNA";
+            case "BLT" -> "JNAE";
+            case "BGE" -> "JAE";
+            case "BGT" -> "JA";
+            case "BEQ" -> "JE";
+            case "BNE" -> "JNE";
+            default -> throw new IllegalStateException("Operador de salto desconocido: " + token);
+        };
+    }
 
+    // En la polaca inversa vienen saltos numericos adaptamos para que sea una
+    // etiqueta string
+    private String labelSaltos(int index) {
+        return "L" + index;
+    }
 
     private String resolveName(String token) {
         if (symbolTable.exists(token)) {
@@ -275,16 +296,16 @@ public class AssemblerGenerator {
         return symbolTable.exists(name) ? symbolTable.getType(name) : "Undefine";
     }
 
-
     private String generatePrint(String operand) {
         String name = resolveName(operand);
         String type = resolveType(operand);
-        if (type == null) type = "";
+        if (type == null)
+            type = "";
 
         switch (type.toUpperCase()) {
             case "STRING":
             case "CTE_STRING":
-                return "    displayString \""+ name + "\"\n";
+                return "    displayString \"" + name + "\"\n";
             case "INT":
             case "CTE_INT":
                 return "    DisplayInteger " + name + "\n";
@@ -299,7 +320,8 @@ public class AssemblerGenerator {
     private String generateRead(String operand) {
         String name = resolveName(operand);
         String type = resolveType(operand);
-        if (type == null) type = "";
+        if (type == null)
+            type = "";
 
         switch (type.toUpperCase()) {
             case "INT":
@@ -310,7 +332,6 @@ public class AssemblerGenerator {
                 return "    ; READ desconocido para " + name + "\n";
         }
     }
-
 
     // Pie fijo del .asm
     private String generateFooter() {
