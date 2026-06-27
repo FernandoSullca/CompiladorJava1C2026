@@ -1,7 +1,9 @@
 package lyc.compiler.intermediateCode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 public class Polaca {
@@ -11,12 +13,14 @@ public class Polaca {
     private Stack<Integer> saltos; // Pila para ET / BI de bucles
     private Stack<Integer> saltosFalso; // Direcciones cuando condición es FALSA // Saltos si la condición es falsa (salir del if/while)
     private Stack<Integer> saltosVerdadero;  // Direcciones cuando condición es VERDADERA // Saltos OR: si condición izquierda es verdadera (entrar al cuerpo)
+    private Map<Integer, List<Integer>> saltosFalsoVinculados; // Indices "_" que deben resolverse con el mismo destino que otro (AND con varios terminos)
 
     private Polaca() {
         this.polaca = new ArrayList<>();
         this.saltos = new Stack<>();
         this.saltosFalso = new Stack<>();
         this.saltosVerdadero = new Stack<>();
+        this.saltosFalsoVinculados = new HashMap<>();
         this.temporalCounter = 0;
     }
 
@@ -52,6 +56,7 @@ public class Polaca {
         saltos.clear();
         saltosFalso.clear();
         saltosVerdadero.clear();
+        saltosFalsoVinculados.clear();
         temporalCounter = 0;
     }
 
@@ -133,7 +138,26 @@ public class Polaca {
         if (!saltosFalso.isEmpty()) {
             int posicionARellenar = saltosFalso.pop(); // Solo saca EL ÚLTIMO
             setElementAt(posicionARellenar, String.valueOf(destino));
+
+            // Si esta posicion tiene otras vinculadas (terminos de un AND que deben
+            // compartir el mismo destino final), tambien se resuelven aca.
+            List<Integer> vinculados = saltosFalsoVinculados.remove(posicionARellenar);
+            if (vinculados != null) {
+                for (int idx : vinculados) {
+                    setElementAt(idx, String.valueOf(destino));
+                }
+            }
         }
+    }
+
+    /**
+     * Vincula la posicion "vinculado" a "principal": cuando "principal" se resuelva
+     * via rellenarSaltosFalso, "vinculado" recibe el mismo destino. Usado por AND
+     * para que ambos lados de la condicion salten al mismo lugar si alguno es falso,
+     * sin romper el comportamiento de "una sola posicion por llamada" que necesita el if anidado.
+     */
+    public void vincularSaltoFalso(int principal, int vinculado) {
+        saltosFalsoVinculados.computeIfAbsent(principal, k -> new ArrayList<>()).add(vinculado);
     }
 
     public void rellenarSaltosVerdadero(int destino) {

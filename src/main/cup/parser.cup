@@ -383,12 +383,13 @@ condition_and ::= condition_not AND
     {: 
         // Recuperamos el salto específico de este nivel de anidación
         int saltoIzquierdoLocal = pilaSaltosAnd.pop();
-        int saltoDer = polaca.desapilarSaltoFalso(); 
-        int despuesCondDer = polaca.getPosicionActual(); 
-        
-        polaca.setElementAt(saltoIzquierdoLocal, String.valueOf(despuesCondDer)); 
-        polaca.apilarSaltoFalso(saltoDer); 
-        System.out.println("AND"); 
+        int saltoDer = polaca.desapilarSaltoFalso();
+
+        // La izquierda debe saltar al mismo destino final que la derecha:
+        // se vincula para que rellenarSaltosFalso resuelva ambas juntas.
+        polaca.vincularSaltoFalso(saltoDer, saltoIzquierdoLocal);
+        polaca.apilarSaltoFalso(saltoDer);
+        System.out.println("AND");
     :};
 condition_and ::= condition_not;
 
