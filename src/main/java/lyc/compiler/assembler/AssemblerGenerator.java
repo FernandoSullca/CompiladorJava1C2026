@@ -3,6 +3,9 @@ package lyc.compiler.assembler;
 import lyc.compiler.files.FileGenerator;
 import lyc.compiler.simboleTable.SymbolTable;
 
+import java.util.Set;
+import java.util.HashSet;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -126,12 +129,15 @@ public class AssemblerGenerator {
         sb.append("    mov DS, AX\n");
         sb.append("    mov es, ax\n\n");
 
+
+        
         // TODO: traduccion de polaca a instrucciones assembler
         sb.append("TODO    ; codigo generado desde polaca inversa\n");
 
         ArrayDeque<String> stack = new ArrayDeque<>();
 
-        for (String token : polaca.getPolaca()) {
+        for (int i = 0; i < polaca.getPolaca().size(); i++) {
+            String token = polaca.getPolaca().get(i);
             switch (token) {
                 case "PRINT": {
                     String operand = stack.pop();
@@ -171,7 +177,21 @@ public class AssemblerGenerator {
                     sb.append("    MOV ").append(destino).append(", ").append(valor).append("\n");
                     break;
                 }
+                
+              case "CMP": {
+                String derecho = stack.pop();
+                String izquierdo = stack.pop();
+                sb.append("    MOV R1, ").append(izquierdo).append("\n");
+                sb.append("    CMP R1, ").append(derecho).append("\n");
+                break;
+            }
 
+            // Saltos condicionales: el token siguiente es el indice (en la polaca) destino
+            case "BLE": case "BLT": case "BGE": case "BGT": case "BEQ": case "BNE": {
+                int destino = Integer.parseInt(polaca.getPolaca().get(++i));
+                sb.append("    ").append(jumpMnemonic(token)).append(" ").append(labelSaltos(destino)).append("\n");
+                break;
+            }
                 default:
                     // Por ahora, cualquier otro token (operandos, operadores, etc.)
                     // se apila para uso futuro. Todavia no se procesan +, -, *, /, :=
@@ -183,6 +203,32 @@ public class AssemblerGenerator {
         sb.append("\n");
         return sb.toString();
     }
+
+        private boolean isBranchOp(String token) {
+            switch (token) {
+                case "BLE": case "BLT": case "BGE": case "BGT": case "BEQ": case "BNE": case "BI":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private String jumpMnemonic(String token) {
+            return switch (token) {
+                case "BLE" -> "JNA";
+                case "BLT" -> "JNAE";
+                case "BGE" -> "JAE";
+                case "BGT" -> "JA";
+                case "BEQ" -> "JE";
+                case "BNE" -> "JNE";
+                default -> throw new IllegalStateException("Operador de salto desconocido: " + token);
+            };
+        }
+ // En la polaca inversa vienen saltos numericos adaptamos para que sea una etiqueta string
+        private String labelSaltos(int index) {
+            return "L" + index;
+        }
+
 
     private String resolveName(String token) {
         if (symbolTable.exists(token)) {
