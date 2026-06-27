@@ -51,9 +51,6 @@ CloseKey = "}"
 Letter = [a-zA-Z]
 Digit = [0-9]
 Colon =":"
-Semi = ";"
-Inc = "++"
-Dec = "--"
 Comma =","
 OpenArray = "["
 CloseArray = "]"
@@ -65,7 +62,7 @@ FloatConstant = {Digit}+"."{Digit}+ | "."{Digit}+ | {Digit}+"."
 StringConstant = "\"" ([^\"])* "\""
 
 //comments de una linea o ningun caracter, no necesita cup(gramatica)
-CommentCharacters = ([^\r\n])*
+CommentCharacters = [a-zA-Z0-9áéíóúÁÉÍÓÚñÑ \t+\-*/=<>!;:,()\[\]{}_.'\"]*
 Comment = "#+" {CommentCharacters} "+#"
 
 
@@ -80,10 +77,13 @@ String= "String"
 Float= "Float"
 Int= "Int"
 In = "in"
-For = "for"
+For = "FOR"
 And = "AND"
 Or = "OR"
 Not = "NOT"
+To = "TO"
+Step = "STEP"
+Next = "NEXT"
 %%
 
 
@@ -102,6 +102,9 @@ Not = "NOT"
   {Int}                                     { return symbol(ParserSym.INT); }
   {In}                                      { return symbol(ParserSym.IN); }
   {For}                                     { return symbol(ParserSym.FOR); }
+  {To}                                      { return symbol(ParserSym.TO); }
+  {Step}                                    { return symbol(ParserSym.STEP); }
+  {Next}                                    { return symbol(ParserSym.NEXT); }
   {And}                                     { return symbol(ParserSym.AND); }
   {Or}                                      { return symbol(ParserSym.OR); }
   {Not}                                     { return symbol(ParserSym.NOT); }
@@ -138,9 +141,6 @@ Not = "NOT"
   {Comma}                                   { return symbol(ParserSym.COMMA); }  
   {OpenArray}                               { return symbol(ParserSym.OPEN_ARRAY); }
   {CloseArray}                              { return symbol(ParserSym.CLOSE_ARRAY); }
-  {Semi}                                    { return symbol(ParserSym.SEMI); }
-  {Inc}                                     { return symbol(ParserSym.INC); }
-  {Dec}                                     { return symbol(ParserSym.DEC); }
   
   /* whitespace ,Comment*/
   {WhiteSpace}                   { /* ignore */ }

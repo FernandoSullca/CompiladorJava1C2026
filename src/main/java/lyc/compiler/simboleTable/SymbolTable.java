@@ -36,7 +36,7 @@ public class SymbolTable {
     }
 
     public String getType(String name){
-        return exists(name)?table.get(name).type:"Undefine";
+        return exists(name)?table.get(name).type:"Undefined";
     }
 
     public boolean exists(String name){

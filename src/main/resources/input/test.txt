@@ -2,7 +2,7 @@
 #+ Objetivo: NO declarar todo en init para verificar altas por uso +#
 
 init {
-    contador,limite,paso,contador4 : Int
+    contador,limite,paso,contador4,a,b,c,d : Int
     mensaje : String
     #+ identificadorQueSuperaCuarentaCaracteresFalla : String +# 
     #+ En caso de descomentar linea 7 falla por longiut del identificador +# 
@@ -30,11 +30,9 @@ contador4 = 32767 #+ En caso de 32768 falla por tamaño del integer (16 bits)+#
 puntoflotante4 = 65504.0 #+ En caso de 65505 falla por tamaño del float (16 bits)+# 
 
 #+ --- NO DECLARADAS (deben aparecer por uso/asignacion) --- +#
-resultado = base * (factor-21) / 4
+resultado = 21 / 4
 resultado = 27 - resultado
-resultado = acumulado + 500
 resultado = 34 * 3
-resultado = divisorA / divisorB
 textoSalida = "LIT STR ASIGN"
 pesoInferido = 35
 
@@ -54,6 +52,29 @@ if (contador > limite)
 else
 {
     print("LIT_IF_MENOR_IGUAL")
+}
+
+#+ --- IF ANIDADO CON ELSE --- +#
+if (contador > limite)
+{
+    print("LIT_IF_MAYOR")
+}
+else if (contador + 1 > limite)
+{
+    print("IF anidado")
+}
+else
+{
+    print("else del IF anidado")
+}
+#+ --- IF ANIDADO DENTRO DE OTRO IF --- +#
+if (contador > limite)
+{
+    if (contador + 2 > limite)
+    {
+        print("LIT_IF_MAYOR + 2")
+    }
+    print("LIT_IF_MAYOR")
 }
 
 #+ --- WHILE CON CONDICION CLASICA --- +#
@@ -79,30 +100,13 @@ while (itemListaB in [1+1,2*2,3/3])
 read(limite)
 
 #+ --- FOR (variables por uso) --- +#
-for (indiceA=0;indiceA<5;indiceA++)
-{
-    print(indiceA)
-}
+FOR i = 1 TO 10 STEP 2
+   print(i)
+NEXT i
 
-for (indiceB=0;indiceB<5;)
-{
-    print(indiceB)
-}
-
-for (indiceC=0;indiceC<5;indiceC--)
-{
-    print(indiceC)
-}
-
-for (indiceD=0;indiceD<5;indiceD+6)
-{
-    print(indiceD)
-}
-
-for (indiceE=0;indiceE<5;indiceE-2)
-{
-    print(indiceE)
-}
+FOR i = 1 TO 5
+   print(i)
+NEXT i 
 
 #+ --- CONDICIONALES --- +#
 
@@ -122,10 +126,7 @@ if (a > b OR c > d)
     print(" A mayor a B O C mayor a D")
 }
 
-if (NOT e)
-{
-    print(" Not E")
-}
+
 
 while(a < b AND c >d)
 {
@@ -137,3 +138,21 @@ while(a < b AND c >d)
 #+ read(variableInexistente) +#
 #+ print(variableInexistente) +#
 
+#+ --- CASOS PARA PROBAR ERROR SEMÁNTICO EN ASIGNACION (id con id) --- +#
+#+ precio = contador +#  #+ Debería fallar: FLOAT = INT +#
+#+ contador = precio +#  #+ Debería fallar: INT = FLOAT +#
+#+ mensaje = contador +# #+ Debería fallar: STRING = INT +#
+
+#+ --- CASOS PARA PROBAR ERROR SEMÁNTICO EN ASIGNACION (id con cte) --- +#
+#+ precio = "contador" +#  #+ Debería fallar: FLOAT = STRING +#
+#+ precio = 10 +#  #+ Debería fallar: FLOAT = INT +#
+#+ mensaje = 10 +# #+ Debería fallar: STRING = INT +#
+
+#+ --- CASOS PARA PROBAR Validación de ID no declarada pero usada --- +#
+#+ if (NOT e){    print(" Not E")} +#
+
+#+ --- CASOS PARA PROBAR Validación de igual tipo en condiciones --- +#
+#+if( mensaje> contador){    print("esta mal la validacion de igual tipo en condiciones")}+#
+
+#+ --- CASOS PARA PROBAR Validación de igual tipo en FOR --- +#
+#+ FOR precio = 1 TO 5   print(i)NEXT i +#
