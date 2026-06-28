@@ -131,6 +131,9 @@ if (a > b OR c > d)
 while(a < b AND c >d)
 {
     print(" Mientras A menor B Y C mayor a D")
+    a=b
+    c=2
+    d=0
 }
 
 

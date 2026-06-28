@@ -412,7 +412,8 @@ condition_not ::= expression:expr
     :};
 
 // operaciones (While, For, If)
-operation_line ::= OPEN_KEY sentences CLOSE_KEY {: System.out.println("Bloque de codigo {}"); :};
+operation_line ::= OPEN_KEY {:rellenarVerdaderoSiPendiente(); :}
+                   sentences CLOSE_KEY {: System.out.println("Bloque de codigo {}"); :};
 
 // Assignments
 sentence ::= assignment {: System.out.println("End Asignacion"); :};
