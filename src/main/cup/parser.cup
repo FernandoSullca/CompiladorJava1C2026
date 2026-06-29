@@ -613,7 +613,7 @@ for_sentence ::= FOR assignment:counterName TO expression:exp2
         // El valor de exp2 ya está en la polaca por la regla 'expression'
         String name = counterName.toString();
         polaca.addElement(name);
-        reservarSaltoComparacion("BGT"); // Polaca: ... ET exp2 id CMP BGT
+        reservarSaltoComparacion("BLT"); // Polaca: ... ET exp2 id CMP BGT
 
         RESULT = name; // Pasamos el nombre para validar en el NEXT
     :}

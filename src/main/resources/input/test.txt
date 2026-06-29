@@ -116,13 +116,13 @@ while (itemListaB in [1+1,2*2,3/3])
 read(limite)
 
 #+ --- FOR (variables por uso) --- +#
-FOR i = 1 TO 10 STEP 2
-   print(i)
-NEXT i
+FOR ifor = 1 TO 10 STEP 2
+   print(ifor)
+NEXT ifor
 
-FOR i = 1 TO 5
-   print(i)
-NEXT i 
+FOR ifor2 = 1 TO 5
+   print(ifor2)
+NEXT ifor2 
 
 #+ --- CONDICIONALES --- +#
 
