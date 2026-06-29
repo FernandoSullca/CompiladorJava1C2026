@@ -608,37 +608,36 @@ for_sentence ::= FOR assignment:counterName TO expression:exp2
         polaca.addElement("ET");
         int inicioLoop = polaca.getPosicionActual();
         polaca.apilarSaltoPila(inicioLoop - 1);
-        
+
         // 3. Preparar condición de salida (id > exp2)
         // El valor de exp2 ya está en la polaca por la regla 'expression'
         String name = counterName.toString();
         polaca.addElement(name);
         reservarSaltoComparacion("BGT"); // Polaca: ... ET exp2 id CMP BGT
-        
+
         RESULT = name; // Pasamos el nombre para validar en el NEXT
     :}
     for_step sentences NEXT IDENTIFIER:idNext
     {:
         String nameFor = (String)RESULT;
         String nameNext = idNext.toString();
-        
+
         // 4. Validación variable en NEXT debe ser la misma que la variable en FOR
         if(!nameFor.equals(nameNext)) {
             semanticError("Variable en NEXT (" + nameNext + ") no coincide con FOR (" + nameFor + ")");
         }
-        
-        // 5. Incremento: id = id + step
-        polaca.addElement(nameFor); // Destino
-        polaca.addElement(nameFor); // Operando 1
-        // (El valor del step ya entró por la regla for_step)
+
+        // 5. Incremento: id = id + step (el step ya está en la pila, pusheado por for_step)
+        polaca.addElement(nameFor); // Operando para sumar con el step pendiente
         polaca.addElement("+");
+        polaca.addElement(nameFor); // Destino real de la asignación
         polaca.addElement(":=");
-        
+
         // 6. Salto al inicio y cierre
         polaca.addElement("BI");
         int posET = polaca.desapilarSaltoPila();
         polaca.addElement(String.valueOf(posET));
-        
+
         polaca.rellenarSaltosFalso(polaca.getPosicionActual());
     :};
 
