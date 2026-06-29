@@ -43,6 +43,21 @@ if (contador > limite)
     print("LIT_IF_MAYOR SIN ELSE")
 }
 
+if(NOT pesoInferido > 35)
+{
+    print("Peso inferido menor de 35")
+}
+
+if(NOT pesoInferido == 35)
+{
+    print("Peso inferido diferente de 35")
+}
+
+if(NOT pesoInferido < 35)
+{
+    print("Peso inferido mayor de 35")
+}
+
 
 #+ --- IF / ELSE --- +#
 if (contador > limite)
@@ -53,6 +68,7 @@ else
 {
     print("LIT_IF_MENOR_IGUAL")
 }
+
 
 #+ --- IF ANIDADO CON ELSE --- +#
 if (contador > limite)
