@@ -124,9 +124,6 @@ public class AssemblerGenerator {
         sb.append("    mov DS, AX\n");
         sb.append("    mov es, ax\n\n");
 
-        // TODO: traduccion de polaca a instrucciones assembler
-        sb.append("TODO    ; codigo generado desde polaca inversa\n");
-
         ArrayDeque<String> stack = new ArrayDeque<>();
 
         // Pre-pasada: detectar que indices de la polaca son destino de algun salto
