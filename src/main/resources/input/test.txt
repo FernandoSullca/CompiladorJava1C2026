@@ -1,139 +1,202 @@
-#+ TEST PARA VER GUARDADO MIXTO EN TABLA DE SIMBOLOS +#
-#+ Objetivo: NO declarar todo en init para verificar altas por uso +#
+#+ TEST INTERACTIVO - Cubre todas las operaciones soportadas por el compilador +#
+#+ El programa le pide datos al usuario por teclado (Int y Float) y reacciona +#
+#+ segun esos valores. Al final hay bloques comentados que documentan casos +#
+#+ que deberian fallar (quedan comentados para no romper esta compilacion). +#
 
 init {
-    contador,limite,paso,contador4 : Int
-    mensaje : String
-    #+ identificadorQueSuperaCuarentaCaracteresFalla : String +# 
-    #+ En caso de descomentar linea 7 falla por longiut del identificador +# 
-    mensaje2 : Int #+ --- 'mensaje' Lanzar Error de "re-declaracion" EN INIT --- +#
-    precio , volumen: Float
-    resultado :Int #+ --- en caso de eliminar/comentar salta excepcion personalizada para pedir su decllaracion en caso de no poder inferir. EJ:textoSalida, pesoInferido" EN INIT --- +#
-    puntoflotante1 : Float
-    puntoflotante2 : Float
-    puntoflotante3 : Float
-    puntoflotante4 : Float
+    edad, limite, contador, opcion, iterador, valorCalculado, a, b, c, d : Int
+    precio, cantidad, descuento : Float
+    nombre : String
 }
 
-#+ --- DECLARADAS EN INIT --- +#
-contador = 1
-limite = 3
-mensaje = "LIT INICIO"
-print(mensaje)
-puntoflotante1 = 9999.99 
-puntoflotante2 = 99.
-puntoflotante3 = .9999
+#+ --- STRING: asignacion y print --- +#
+nombre = "Validador interactivo"
+print(nombre)
+
+#+ --- READ INTERACTIVO: Int --- +#
+print("Ingrese su edad:")
+read(edad)
+print("Edad ingresada:")
+print(edad)
+
+print("Ingrese el limite para los bucles:")
+read(limite)
+
+#+ --- READ INTERACTIVO: Float --- +#
+print("Ingrese el precio unitario:")
+read(precio)
+
+print("Ingrese la cantidad (admite decimales):")
+read(cantidad)
+
+print("Ingrese el descuento:")
+read(descuento)
+
+#+ --- ARITMETICA: +, -, *, / (mismo tipo a ambos lados) --- +#
+total = precio * cantidad
+total = total - descuento
+print(total)
+
+resultado = edad + limite
+resultado = resultado - contador
+resultado = resultado * 2
+resultado = resultado / 2
+print(resultado)
+
+#+ --- CONSTANTES NEGATIVAS --- +#
 contadorNegativo = -10
-puntoflotanteNegativo = -.9999
+descuentoNegativo = -0.5
+print(contadorNegativo)
+print(descuentoNegativo)
 
-contador4 = 32767 #+ En caso de 32768 falla por tamaño del integer (16 bits)+# 
-puntoflotante4 = 65504.0 #+ En caso de 65505 falla por tamaño del float (16 bits)+# 
-
-#+ --- NO DECLARADAS (deben aparecer por uso/asignacion) --- +#
-resultado = base * (factor-21) / 4
-resultado = 27 - resultado
-resultado = acumulado + 500
-resultado = 34 * 3
-resultado = divisorA / divisorB
-textoSalida = "LIT STR ASIGN"
-pesoInferido = 35
-
-
-#+ --- IF --- +#
-if (contador > limite)
+#+ --- COMPARACIONES: >, >=, <, <=, ==, != --- +#
+if (edad >= 18)
 {
-    print("LIT_IF_MAYOR SIN ELSE")
-}
-
-
-#+ --- IF / ELSE --- +#
-if (contador > limite)
-{
-    print("LIT_IF_MAYOR")
+    print("Es mayor de edad")
 }
 else
 {
-    print("LIT_IF_MENOR_IGUAL")
+    print("Es menor de edad")
 }
 
-#+ --- WHILE CON CONDICION CLASICA --- +#
-while (contador > limite)
+if (precio > 100.0)
 {
-    print("contador mayor que limite")
-    contador = contador + 1
+    print("Precio alto")
 }
-
-#+ --- WHILE ESPECIAL IN [ ... ] --- +#
-
-while (itemListaA in [1,2,3])
+else if (precio == 100.0)
 {
-   print(itemListaA)
+    print("Precio exacto")
 }
-
-while (itemListaB in [1+1,2*2,3/3])
+else
 {
-   print(itemListaB)
+    print("Precio bajo")
 }
 
-#+ --- READ --- +#
-read(limite)
-
-#+ --- FOR (variables por uso) --- +#
-for (indiceA=0;indiceA<5;indiceA++)
+if (edad != limite)
 {
-    print(indiceA)
+    print("Edad y limite son distintos")
 }
 
-for (indiceB=0;indiceB<5;)
+if (edad <= limite)
 {
-    print(indiceB)
+    print("Edad menor o igual al limite")
 }
 
-for (indiceC=0;indiceC<5;indiceC--)
+#+ --- IF ANIDADO --- +#
+if (edad >= 18)
 {
-    print(indiceC)
+    if (precio > 0.0)
+    {
+        print("Mayor de edad con precio valido")
+    }
 }
 
-for (indiceD=0;indiceD<5;indiceD+6)
-{
-    print(indiceD)
-}
-
-for (indiceE=0;indiceE<5;indiceE-2)
-{
-    print(indiceE)
-}
-
-#+ --- CONDICIONALES --- +#
-
-if (a > b)
-{
-    print(" A mayor a B")
-}
+#+ --- READ INTERACTIVO PARA NOT / AND / OR --- +#
+print("Ingrese valor para A:")
+read(a)
+print("Ingrese valor para B:")
+read(b)
+print("Ingrese valor para C:")
+read(c)
+print("Ingrese valor para D:")
+read(d)
 
 if (a > b AND c > d)
 {
-    print(" A mayor a B Y C mayor a D")
+    print("A mayor a B Y C mayor a D")
 }
-
 
 if (a > b OR c > d)
 {
-    print(" A mayor a B O C mayor a D")
+    print("A mayor a B O C mayor a D")
 }
 
-if (NOT e)
+if (NOT (a > b))
 {
-    print(" Not E")
+    print("A no es mayor a B")
 }
 
-while(a < b AND c >d)
+#+ --- WHILE CLASICO (usa el limite ingresado por teclado) --- +#
+contador = limite
+print("Comienzo de Ciclo WHILE Clasico:")
+while (contador > 0)
 {
-    print(" Mientras A menor B Y C mayor a D")
+    print(contador)
+    contador = contador - 1
 }
 
+#+ --- WHILE ESPECIAL IN [ ... ] --- +#
+print("Comienzo de Ciclo WHILE especial simple:")
+while (opcion in [1, 2, 3])
+{
+    print(opcion)
+}
 
-#+ --- READ Y PRINT - ERROR VARIABLE NO DECLARADA --- +#
-#+ read(variableInexistente) +#
-#+ print(variableInexistente) +#
+print("Comienzo de Ciclo WHILE especial con operaciones:")
+while (valorCalculado in [1+1, 2*2, 6-2])
+{
+    print(valorCalculado)
+}
 
+#+ --- FOR ... TO ... STEP ... NEXT (usa el limite ingresado) --- +#
+print("Inicio de ciclo FOR desde 1 a Limite ingresado:")
+FOR iterador = 1 TO limite STEP 1
+    print(iterador)
+NEXT iterador
+
+#+ --- WHILE COMPUESTO CON REASIGNACION (usa A, B, C, D ingresados) --- +#
+while (a < b AND c > d)
+{
+    print("Mientras A menor a B Y C mayor a D")
+    a = b
+    c = 2
+}
+
+print("Fin del programa interactivo")
+
+
+#+ ============================================================== +#
+#+ CASOS COMENTADOS: documentan errores que el compilador debe    +#
+#+ detectar. Se dejan comentados para que este archivo compile.   +#
+#+ ============================================================== +#
+
+#+ --- Redeclaracion de una variable ya declarada en init --- +#
+#+ --- init { edad : Float } --- +#
+
+#+ --- Cadena que supera los 64 caracteres permitidos --- +#
+#+ --- print("identificadorQueSuperaSesentaYCuatroCaracteresPermitidosPorElLexe")--- +#
+
+#+ --- Asignacion con tipos incompatibles (id = id) --- +#
+#+ precio = edad +#  #+ Deberia fallar: FLOAT = INT +#
+#+ edad = precio +#  #+ Deberia fallar: INT = FLOAT +#
+#+ nombre = edad +# #+ Deberia fallar: STRING = INT +#
+
+#+ --- Asignacion con tipos incompatibles (id = constante) --- +#
+#+ precio = 10 +#  #+ Deberia fallar: FLOAT = INT +#
+#+ edad = 10.5 +#  #+ Deberia fallar: INT = FLOAT +#
+#+ nombre = 10 +# #+ Deberia fallar: STRING = INT +#
+
+#+ --- Operacion aritmetica entre tipos distintos --- +#
+#+ resultado = edad + precio +# #+ Deberia fallar: INT + FLOAT +#
+#+ resultado = edad * precio +# #+ Deberia fallar: INT * FLOAT +#
+
+#+ --- Comparacion entre tipos distintos --- +#
+#+ if (edad > precio){ print(nombre) } +# #+ Deberia fallar: INT vs FLOAT +#
+
+#+ --- Uso de variable no declarada --- +#
+#+ print(variableInexistente) +# #+ Deberia fallar: no declarada +#
+#+ read(variableInexistente) +# #+ Deberia fallar: no declarada +#
+#+ if (variableInexistente > 1){ print(edad) } +# #+ Deberia fallar: no declarada +#
+
+#+ --- FOR con variable de NEXT distinta a la del FOR --- +#
+#+ FOR contador = 1 TO 5 print(contador) NEXT limite +# #+ Deberia fallar: NEXT no coincide con FOR +#
+
+#+ --- Limites de rango INT (16 bits): -32768 a 32767 --- +#
+#+ desbordeInt = 32768 +# #+ Deberia fallar: supera MAX_INT +#
+#+ desbordeIntNeg = -32769 +# #+ Deberia fallar: inferior a MIN_INT +#
+
+#+ --- Limites de rango FLOAT: -2147483648.0 a 2147483648.0 --- +#
+#+desbordeFloat = 2147483650.0 +# #+ Deberia fallar: supera MAX_FLOAT +#
+
+#+ --- Longitud de identificador mayor a 64 caracteres --- +#
+#+ nombrequesuperalossesentaycuatrocaracteresparalaasignaciondealgogrande = "Esta cadena de texto ejemplo" +# #+ Deberia fallar: supera MAX_LENGTH +#

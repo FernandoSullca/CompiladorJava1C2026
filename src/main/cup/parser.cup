@@ -3,17 +3,30 @@ package lyc.compiler;
 import java_cup.runtime.*;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+
 import lyc.compiler.simboleTable.SymbolTable;
 import lyc.compiler.model.*;
 import lyc.compiler.constants.Constants;
 import lyc.compiler.model.InvalidLengthException;
 import lyc.compiler.intermediateCode.Polaca;
+
 class Parser;
 action code {:
 
 public ArrayList<String> varType = new ArrayList<>();
 SymbolTable symTable = SymbolTable.getSymbolTable();
 Polaca polaca = Polaca.getInstance();
+boolean generandoCondicion = false;
+boolean rellenarVerdaderoPendiente = false;
+Stack<Integer> pilaSaltosAnd = new Stack<>();
+
+String idVarWhile="";
+List<String> whileInBody = new ArrayList<>();
+boolean esWhileIn = false;
+Integer whileInBodyStart =0;
+int whileInCuerpoStart = 0;
 
 
 private void semanticError(String msg){
@@ -51,11 +64,6 @@ private String validateNegativeFloat(String value) {
 }
 
 //Metodos adicionales para menejo de listas de saltos verdaderos y falsos
-boolean generandoCondicion = false;
-
-boolean rellenarVerdaderoPendiente = false;
-int andSaltoIzquierdo = -1;
-
 private void rellenarVerdaderoSiPendiente() {
     if (rellenarVerdaderoPendiente) {
         polaca.rellenarSaltosVerdadero(polaca.getPosicionActual());
@@ -109,9 +117,9 @@ terminal OPEN_ARRAY;
 terminal CLOSE_ARRAY;
 terminal IN;
 terminal FOR;
-terminal SEMI;
-terminal INC;
-terminal DEC;
+terminal TO;
+terminal STEP;
+terminal NEXT;
 terminal AND;
 terminal OR;
 terminal NOT;
@@ -143,12 +151,12 @@ non terminal condition_not;
 non terminal operation_line;
 non terminal if_sentence;
 non terminal if_body;
+non terminal if_else_bridge;
 non terminal for_sentence;
-non terminal for_start;
-non terminal update;
+non terminal for_step;
 non terminal especial_condition_line;
+non terminal expression_item;
 non terminal expression_array;
-
 
 // Start Symbol Definition
 start with program;
@@ -160,74 +168,152 @@ sentences ::= sentences sentence
             ;
 
 first_sentence ::= sentence {: rellenarVerdaderoSiPendiente(); :};
-//condicionales de autoinclemento para for
-update ::=
-      IDENTIFIER:id INC {: RESULT = id.toString() + " INC"; :}
-    | IDENTIFIER:id DEC {: RESULT = id.toString() + " DEC"; :}
-    | IDENTIFIER:id PLUS INTEGER_CONSTANT:c {: RESULT = id.toString() + " PLUS " + c.toString(); :}
-    | IDENTIFIER:id SUB INTEGER_CONSTANT:c {: RESULT = id.toString() + " SUB " + c.toString(); :}
-    ;
 
-expression ::= expression PLUS term {: System.out.println("+");
- polaca.addElement("+");:};
-expression ::= expression SUB term {: System.out.println("-");
-polaca.addElement("-");:};
-expression ::= expression MORETHAN term {: System.out.println(">");
- if (generandoCondicion) { reservarSaltoComparacion("BLE"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BLE"); }
+expression ::= expression:e1 PLUS term:t1 
+    {: 
+        // Validación adicional: ¿Se pueden sumar tipos distintos?
+        if(!e1.toString().equals(t1.toString())) {
+            semanticError("Operación aritmética entre tipos distintos: " + e1 + " y " + t1);
+        }
+        polaca.addElement("+");
+        RESULT = e1; // Propagamos el tipo
+    :};
+expression ::= expression:e1 SUB term:t1 
+    {: 
+        // Validación adicional: ¿Se pueden sumar tipos distintos?
+        if(!e1.toString().equals(t1.toString())) {
+            semanticError("Operación aritmética entre tipos distintos: " + e1 + " y " + t1);
+        }
+        polaca.addElement("-");
+        RESULT = e1; // Propagamos el tipo
+    :};
+
+expression ::= expression:e1 MORETHAN term:t1 {: 
+    System.out.println(">");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BLE"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BLE"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression MOREEQUALTHAN term {: System.out.println(">=");
- if (generandoCondicion) { reservarSaltoComparacion("BLT"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BLT"); }
+
+expression ::= expression:e1 MOREEQUALTHAN term:t1 {: 
+    System.out.println(">=");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BLT"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BLT"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression LESSTHAN term {: System.out.println("<");
- if (generandoCondicion) { reservarSaltoComparacion("BGE"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BGE"); }
+
+expression ::= expression:e1 LESSTHAN term:t1 {: 
+    System.out.println("<");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BGE"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BGE"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression LESSEQUALTHAN term {: System.out.println("<=");
- if (generandoCondicion) { reservarSaltoComparacion("BGT"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BGT"); }
+
+expression ::= expression:e1 LESSEQUALTHAN term:t1 {: 
+    System.out.println("<=");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BGT"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BGT"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression EQUAL term {: System.out.println("==");
- if (generandoCondicion) { reservarSaltoComparacion("BNE"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BNE"); }
+
+expression ::= expression:e1 EQUAL term:t1 {: 
+    System.out.println("==");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BNE"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BNE"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
-expression ::= expression NOTEQUAL term {: System.out.println("!=");
- if (generandoCondicion) { reservarSaltoComparacion("BEQ"); RESULT = "BOOL_CMP"; }
- else { polaca.addElement("CMP"); polaca.addElement("BEQ"); }
+
+expression ::= expression:e1 NOTEQUAL term:t1 {: 
+    System.out.println("!=");
+    if(!e1.toString().equals(t1.toString())) {
+        semanticError("Incompatibilidad de tipos en comparación: " + e1 + " vs " + t1);
+    }
+    if (generandoCondicion) { 
+        reservarSaltoComparacion("BEQ"); 
+    } else { 
+        polaca.addElement("CMP"); 
+        polaca.addElement("BEQ"); 
+    } 
+    RESULT = "BOOL_CMP"; 
 :};
+
 expression ::= term :t {: System.out.println("Expression = Term");
                           RESULT = t;:};
-term ::= term MULT factor {: System.out.println("*");
- polaca.addElement("*");
-:};
-term ::= term DIV factor {: System.out.println("/");
- polaca.addElement("/"); :};
+term ::= term:t1 MULT factor:f1 
+    {: 
+        // 1. Validar que t1 y f1 sean del mismo tipo (ej: no multiplicar INT por STRING)
+        if(!t1.toString().equals(f1.toString())) {
+            semanticError("Tipos incompatibles en multiplicación: " + t1 + " * " + f1);
+        }
+        System.out.println("*");
+        polaca.addElement("*"); 
+        // 2. Propagar el tipo resultante al nivel superior
+        RESULT = t1; 
+    :};
+term ::= term:t1 DIV factor:f1 
+    {:
+        System.out.println("=== DIV: t1=" + t1 + " f1=" + f1);
+        if(!t1.toString().equals(f1.toString())) {
+            semanticError("Tipos incompatibles en división: " + t1 + " / " + f1);
+        }
+        System.out.println("/");
+        polaca.addElement("/"); 
+        RESULT = t1; 
+    :};
 term ::= factor:f {:
                 System.out.println("Term = factor");
                 RESULT = f;
                 :};
-factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id);
-                            String name = id.toString();
+factor ::= IDENTIFIER:id 
+    {: 
+        String name = id.toString();
+        // 1. Verificar que la variable exista
+        if(!symTable.exists(name)){ 
+            requireDeclared(name); 
+        }
+        // 2. Agregar a la polaca
+        polaca.addElement(name);
+        
+        // 3. RETORNAR el tipo para que suba por term y expression
+        RESULT = symTable.getType(name); 
+        System.out.println("Id: " + name + " (Tipo: " + RESULT + ")");
+    :};
 
-                            if(!symTable.exists(name)) {
-                                    // Si no existe (caso de los IF/WHILE con variables nuevas), la creamos.
-
-                                    symTable.insert(name, "", "", true);
-                                    System.out.println("Alta por uso (Factor): " + name);
-                                    RESULT = "UNDEFINED";
-                                } else {
-                                    // Si ya existe (ya pasó por INIT o es una asignación en curso),
-                                    // solo recuperamos su tipo actual.
-                                    String existingType = symTable.getType(name);
-                                    // Si el tipo existe pero está vacío (por un error previo),
-                                    // podrías devolver "UNDEFINED" para que el assignment la complete.
-                                    RESULT = (existingType.equals("")) ? "UNDEFINED" : existingType;
-                            }
-                            //Guardado de polaca por factor
-                            polaca.addElement(name);
-
-                            :};
 factor ::= INTEGER_CONSTANT:constant {:
                             System.out.println("Constant: " + constant );
                             symTable.insert(constant.toString(),"INT",constant.toString(),false);
@@ -270,37 +356,50 @@ factor ::= STRING_CONSTANT:constant {:
                         RESULT = "STRING";
                         polaca.addElement(constant.toString());
                                                         :};
-factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
+factor ::= OPEN_BRACKET expression:e CLOSE_BRACKET 
+{: 
+    System.out.println("Factor = (Expression)"); 
+    // Importante: El factor ahora toma el tipo de la expresión interna
+    RESULT = e; 
+:};
 
 // condicionales (recursión a la derecha para evitar conflictos shift/reduce)
 condition_line ::= condition_or {: rellenarVerdaderoPendiente = true; :};
 
-condition_or ::= condition_and:iqz OR {:
-
-    // Si la izquierda del OR es falsa, continúa evaluando la derecha
-    int saltoFalsoIzq = polaca.desapilarSaltoFalso();
-    polaca.setElementAt(saltoFalsoIzq, String.valueOf(polaca.getPosicionActual()));
-
-    // Si la izquierda es verdadera, salta al cuerpo del if
-    polaca.addElement("BI");
-    polaca.apilarSaltoVerdadero(polaca.getPosicionActual());
-    polaca.addElement("_");
-:} condition_or:der {:
-    System.out.println("OR");
-:};
+condition_or ::= condition_and OR 
+    {: 
+        // Si el lado izquierdo es VERDADERO, ya no evaluamos el resto (cortocircuito).
+        // Sacamos el "Salto si Falso" que dejó el condition_and y lo invertimos.
+        int saltoFalsoIzquierdo = polaca.desapilarSaltoFalso();
+        polaca.invertirSaltoCondicional(saltoFalsoIzquierdo);
+        
+        // Ahora es un "Salto si Verdadero", lo mandamos a la lista de saltos 
+        // que se rellenarán al inicio del bloque sentences.
+        polaca.apilarSaltoVerdadero(saltoFalsoIzquierdo); 
+    :} 
+    condition_or 
+    {: 
+        System.out.println("OR"); 
+    :};
 
 condition_or ::= condition_and;
 
-condition_and ::= condition_not:izq AND {:
-    // Si la izquierda del AND es falsa, NO CONTNUA
-    andSaltoIzquierdo = polaca.desapilarSaltoFalso();
-:} condition_and:der {:
-    int saltoDer = polaca.desapilarSaltoFalso();
-    int despuesCondDer = polaca.getPosicionActual();
-    polaca.setElementAt(andSaltoIzquierdo, String.valueOf(despuesCondDer));
-    polaca.apilarSaltoFalso(saltoDer);
-    System.out.println("AND");
-:};
+condition_and ::= condition_not AND 
+    {: 
+        pilaSaltosAnd.push(polaca.desapilarSaltoFalso()); 
+    :} 
+    condition_and 
+    {: 
+        // Recuperamos el salto específico de este nivel de anidación
+        int saltoIzquierdoLocal = pilaSaltosAnd.pop();
+        int saltoDer = polaca.desapilarSaltoFalso();
+
+        // La izquierda debe saltar al mismo destino final que la derecha:
+        // se vincula para que rellenarSaltosFalso resuelva ambas juntas.
+        polaca.vincularSaltoFalso(saltoDer, saltoIzquierdoLocal);
+        polaca.apilarSaltoFalso(saltoDer);
+        System.out.println("AND");
+    :};
 condition_and ::= condition_not;
 
 condition_not ::= NOT condition_not {:
@@ -310,51 +409,47 @@ condition_not ::= NOT condition_not {:
     polaca.apilarSaltoFalso(salto);
     System.out.println("NOT");
 :};
-condition_not ::= expression:expr {:
-    // Si la expresión no es una comparación, compararla con 0
-
-    if (expr == null || !"BOOL_CMP".equals(expr.toString())) {
-        polaca.addElement("0");
-        polaca.addElement("CMP");
-        polaca.addElement("BEQ");
-        polaca.apilarSaltoFalso(polaca.getPosicionActual());
-        polaca.addElement("_");
-    }
-    System.out.println("expression");
-:};
+condition_not ::= expression:expr 
+    {: 
+        // Si la expresión no es una comparación (ej: IF(a)), 
+        // forzamos una comparación para que exista un salto en la pila.
+        if (expr == null || !expr.toString().equals("BOOL_CMP")) {
+            polaca.addElement("1"); // Comparamos contra 1 (True)
+            reservarSaltoComparacion("BNE"); 
+            RESULT = "BOOL_CMP";
+        }
+    :};
 
 // operaciones (While, For, If)
-operation_line ::= OPEN_KEY sentences CLOSE_KEY {: System.out.println("Bloque de codigo {}"); :};
+operation_line ::= OPEN_KEY {:rellenarVerdaderoSiPendiente(); :}
+                   sentences CLOSE_KEY {: System.out.println("Bloque de codigo {}"); :};
 
 // Assignments
 sentence ::= assignment {: System.out.println("End Asignacion"); :};
 
-assignment ::= IDENTIFIER:id ASSIG expression:type {:
-
-                    System.out.println("Assignment " + id + " := expression");
-                    String name = id.toString();
-                    String typeS = (type != null) ? type.toString() : "UNDEFINED";
-                    if (symTable.exists(name)) {
-                        // CASO 1: La variable ya existe (declarada en INIT).
-                        System.out.println("Asignación a variable existente: " + name);
-                        //Verificar si corresponde update de la variable para contenido en la tabla de simbolos
-                    }
-                    // verificacion extra para asignar en la tabla de simbolo solo
-                    // identificadores previamente creador en el bloque init del compilador,
-                    // lanza excepcion y detiene compilacion
-                    else if (typeS != null && (typeS.equals("STRING") || typeS.equals("INT") || typeS.equals("FLOAT"))) {
-                        // CASO 2: No existe pero la autodeclaramos por uso.
-                        symTable.insert(name, typeS, "", true);
-                        System.out.println("Autodeclarada en ejecución: " + name + " de tipo " + typeS);
-                    }
-                    else {
-                        // CASO 3: No existe y no tenemos tipo para autodeclarar. Error de compilacion.
-                        requireDeclared(name);
-                    }
-                      polaca.addElement(name);
-                      polaca.addElement(":=");
-                      RESULT = name;
-                 :};
+assignment ::= IDENTIFIER:id ASSIG expression:expType  
+{:
+        String idName = id.toString();
+        // 1. Validar que la variable de la izquierda esté declarada o dar de alta por uso
+        // 2. Obtener el tipo de la variable de la izquierda
+        String idType = symTable.getType(idName);
+        idType = idType.equals("Undefined") ? expType.toString() : idType;
+        if(!symTable.exists(idName)){
+            symTable.insert(idName, expType.toString(), "", true); 
+            System.out.println("Alta por uso: " + idName + " como " + expType);
+        }
+        // 3. CHEQUEO SEMÁNTICO: Comparar tipos
+        // expType vendrá como "INT", "FLOAT" o "STRING" desde la regla expression
+        if (!idType.equals(expType)) {
+            semanticError("Tipos incompatibles: No se puede asignar " + expType + 
+                          " a la variable '" + idName + "' que es de tipo " + idType);
+        }        
+        // 4. Generación de código intermedio
+        polaca.addElement(idName);
+        polaca.addElement(":=");
+        System.out.println("Asignación válida: " + idName + " := " + expType);
+        RESULT = idName;
+    :};
 
 // WRITE
 sentence ::= print_sentence {: System.out.println("End PRINT"); :};
@@ -443,135 +538,164 @@ sentence::=while_sentence  {: System.out.println("End WHILE"); :};
 
 
 while_sentence ::= WHILE {:
-        polaca.addElement("ET");
-        generandoCondicion = true;
+                polaca.addElement("ET");
+                generandoCondicion = true;
+                esWhileIn = false;
+                int posET = polaca.getPosicionActual() - 1; // posicion del ET recien agregado
+                polaca.apilarSaltoPila(posET);
+                System.out.println("Bloque WHILE");
 
-        int posSaltoIncondicional = polaca.getPosicionActual();
-        polaca.apilarSaltoPila(posSaltoIncondicional -1);
-        generandoCondicion = true;
-        System.out.println("Bloque WHILE");
         :}
     
     OPEN_BRACKET condition_or_especial CLOSE_BRACKET {:
-        generandoCondicion = false; :}
-        operation_line {:
-        polaca.addElement("BI");
-        int salidaWhile = polaca.getPosicionActual();
+        generandoCondicion = false;
+          System.out.println("=== FIN CONDICION, polaca hasta aca: " + polaca.toString());
+            System.out.println("=== whileInBodyStart: " + whileInBodyStart);
+            System.out.println("=== whileInCuerpoStart: " + whileInCuerpoStart);
+        :}
+    operation_line {:
 
-        polaca.rellenarSaltosFalso(salidaWhile);
+          if (esWhileIn) {
+                     int finPolaca = polaca.getPosicionActual();
 
-        int inicioDeCondicion = polaca.desapilarSaltoPila();
-        polaca.addElement(String.valueOf(inicioDeCondicion));
+                        // Extraer SOLO el cuerpo (desde whileInCuerpoStart hasta el final)
+                        whileInBody = polaca.extractRange(whileInCuerpoStart, finPolaca);
+
+                        // Las asignaciones siguen en la polaca desde whileInBodyStart
+                        // Inyectar el cuerpo después de cada asignación
+                        polaca.injectBodyAfterEachAssignment(idVarWhile, whileInBody, whileInBodyStart);
+
+                        // Eliminar el ET sobrante
+                        int posETSobrante = polaca.desapilarSaltoPila();
+                        polaca.removeAt(posETSobrante);
+
+                        esWhileIn = false;
+
+               } else {
+                   polaca.addElement("BI");
+                   int salidaWhile = polaca.getPosicionActual();
+                   polaca.rellenarSaltosFalso(salidaWhile);
+                   int inicioDeCondicion = polaca.desapilarSaltoPila();
+                   polaca.addElement(String.valueOf(inicioDeCondicion));
+               }
     :};
 
 // Resuelve la ambigüedad entre condition_line y especial_condition_line
 condition_or_especial ::= especial_condition_line
                         | condition_line
+
+
                         ;
-especial_condition_line ::= IDENTIFIER:id IN OPEN_ARRAY expression_array CLOSE_ARRAY {: System.out.println("condicion especial");
-                                                                                        String c = id.toString();
-                                                                                        symTable.insert(c,"","",true); :};
-expression_array ::= expression COMMA expression_array;
-expression_array ::= expression; 
+especial_condition_line ::= IDENTIFIER:id
+    IN OPEN_ARRAY
+    {:
+            String c = id.toString();
+            idVarWhile = c;
+            esWhileIn = true;
+            if (!symTable.exists(c)) symTable.insert(c, "INT", "", true);
+            // Marcar dónde empieza la zona de asignaciones
+            whileInBodyStart = polaca.getPosicionActual();
+            RESULT = c;
+        :}
+
+    expression_array CLOSE_ARRAY   {:
+                                         // Aquí las asignaciones ya están generadas
+                                         // Marcamos dónde empieza el cuerpo del while
+                                         whileInCuerpoStart = polaca.getPosicionActual();
+                                     :};
+
+expression_array ::= expression_item COMMA expression_array
+                   | expression_item
+                   ;
+
+expression_item ::= expression:val {:
+    // El valor ya está en la polaca (apilado por expression)
+               System.out.println("=== expr_array elemento tipo: " + val +
+                                  " polaca actual: " + polaca.getPosicionActual());
+    polaca.addElement(idVarWhile);
+    polaca.addElement(":=");
+:};
 
 //IF
+if_else_bridge ::= ELSE 
+    {:
+        // 1. Generamos el salto para salir del IF (saltar sobre el ELSE)
+        polaca.addElement("BI");
+        polaca.apilarSaltoPila(polaca.getPosicionActual()); 
+        polaca.addElement("_");
+        
+        // 2. AHORA completamos el salto falso de la condición 
+        // para que apunte a este punto (el inicio del bloque ELSE)
+        polaca.rellenarSaltosFalso(polaca.getPosicionActual()); 
+    :};
 sentence ::= if_sentence {: System.out.println("End IF"); :};
 
 if_sentence ::= IF {: generandoCondicion = true; :} OPEN_BRACKET condition_line CLOSE_BRACKET {: generandoCondicion = false; :} if_body;
 
-//If simple
-if_body ::= operation_line {: 
-    System.out.println("Bloque IF");
-    // Al terminar el IF (sin else), completamos el salto condicional falso reservado en condition_line
-    polaca.rellenarSaltosFalso(polaca.getPosicionActual());
-:};
 
-//If-else
-if_body ::= operation_line {: 
-    polaca.addElement("BI");
-    polaca.apilarSaltoPila(polaca.getPosicionActual());
-    polaca.addElement("_");
-    polaca.rellenarSaltosFalso(polaca.getPosicionActual());
-:} ELSE operation_line {: 
-    System.out.println("Bloque IF/ELSE");
-    // Al terminar el ELSE, sacamos el BI y lo rellenamos con la posicion final
-    int saltoFinIF = polaca.desapilarSaltoPila();
-    polaca.setElementAt(saltoFinIF, String.valueOf(polaca.getPosicionActual()));
-:};
+if_body ::= operation_line 
+    {: 
+        System.out.println("Bloque IF Simple"); 
+        polaca.rellenarSaltosFalso(polaca.getPosicionActual()); 
+    :}
+    | operation_line if_else_bridge operation_line 
+    {: 
+        System.out.println("Bloque IF/ELSE"); 
+        // Completamos el BI que dejamos pendiente en el bridge
+        int saltoFinIF = polaca.desapilarSaltoPila(); 
+        polaca.setElementAt(saltoFinIF, String.valueOf(polaca.getPosicionActual())); 
+    :}
+    | operation_line if_else_bridge if_sentence 
+    {: 
+        System.out.println("Bloque ELSE IF"); 
+        // Completamos el BI para que el IF padre salte al final de toda la cadena
+        int saltoFinIF = polaca.desapilarSaltoPila(); 
+        polaca.setElementAt(saltoFinIF, String.valueOf(polaca.getPosicionActual()));
+    :};
 
-//FOR
+// FOR - TEMA ESPECIAL
 sentence ::= for_sentence {: System.out.println("End FOR"); :};
 
-for_start ::= FOR OPEN_BRACKET assignment:initAssign SEMI {:
+for_sentence ::= FOR assignment:counterName TO expression:exp2 
+    {:
+        // 1. alta por uso y validacion tipo variable resuelto por 'assignment'
+
+        // 2. Etiqueta de inicio del bucle
         polaca.addElement("ET");
-        int posSaltoIncondicional = polaca.getPosicionActual();
-        polaca.apilarSaltoPila(posSaltoIncondicional - 1);
-        generandoCondicion = true;
-    :} condition_line SEMI {:
-        generandoCondicion = false;
-        RESULT = initAssign;
-    :};
+        int inicioLoop = polaca.getPosicionActual();
+        polaca.apilarSaltoPila(inicioLoop - 1);
 
-//For con tercer condicion, similar al while
-for_sentence ::= for_start update:u CLOSE_BRACKET operation_line {:
-        if (u != null) {
-            //U es el RESULT asignado a la reglas
-            String updateStr = u.toString();
-            String[] parts = updateStr.split(" ");
-            String id = parts[0];
-            String op = parts[1];
-            if (op.equals("INC")) {
-                polaca.addElement(id);
-                polaca.addElement("1");
-                polaca.addElement("+");
-                polaca.addElement(id);
-                polaca.addElement(":=");
-            } else if (op.equals("DEC")) {
-                polaca.addElement(id);
-                polaca.addElement("1");
-                polaca.addElement("-");
-                polaca.addElement(id);
-                polaca.addElement(":=");
-            } else if (op.equals("PLUS")) {
-                polaca.addElement(id);
-                polaca.addElement(parts[2]);
-                polaca.addElement("+");
-                polaca.addElement(id);
-                polaca.addElement(":=");
-            } else if (op.equals("SUB")) {
-                polaca.addElement(id);
-                polaca.addElement(parts[2]);
-                polaca.addElement("-");
-                polaca.addElement(id);
-                polaca.addElement(":=");
-            }
+        // 3. Preparar condición de salida (id > exp2)
+        // El valor de exp2 ya está en la polaca por la regla 'expression'
+        String name = counterName.toString();
+        polaca.addElement(name);
+        reservarSaltoComparacion("BLT"); // Polaca: ... ET exp2 id CMP BGT
+
+        RESULT = name; // Pasamos el nombre para validar en el NEXT
+    :}
+    for_step sentences NEXT IDENTIFIER:idNext
+    {:
+        String nameFor = (String)RESULT;
+        String nameNext = idNext.toString();
+
+        // 4. Validación variable en NEXT debe ser la misma que la variable en FOR
+        if(!nameFor.equals(nameNext)) {
+            semanticError("Variable en NEXT (" + nameNext + ") no coincide con FOR (" + nameFor + ")");
         }
-        //aplicando saltos luego de crear los incrementos
-        polaca.addElement("BI");
-        int salidaFor = polaca.getPosicionActual();
-        polaca.rellenarSaltosFalso(salidaFor);
-        int inicioDeCondicion = polaca.desapilarSaltoPila();
-        polaca.addElement(String.valueOf(inicioDeCondicion));
-        System.out.println("Bloque FOR Con Pasos");
-    :};
-//For sin tercer condicion: incremento implicito +1 usando el id de la asignacion inicial
-for_sentence ::= for_start:forInit CLOSE_BRACKET operation_line {:
-        // forInit es el identificador de la asignacion inicial (ej: indiceB en for(indiceB=0;...;))
-        String id = forInit.toString();
-        polaca.addElement(id);
-        polaca.addElement("1");
+
+        // 5. Incremento: id = id + step (el step ya está en la pila, pusheado por for_step)
+        polaca.addElement(nameFor); // Operando para sumar con el step pendiente
         polaca.addElement("+");
-        polaca.addElement(id);
+        polaca.addElement(nameFor); // Destino real de la asignación
         polaca.addElement(":=");
-        //aplicando saltos luego de crear los incrementos
+
+        // 6. Salto al inicio y cierre
         polaca.addElement("BI");
-        int salidaFor = polaca.getPosicionActual();
-        polaca.rellenarSaltosFalso(salidaFor);
-        int inicioDeCondicion = polaca.desapilarSaltoPila();
-        polaca.addElement(String.valueOf(inicioDeCondicion));
-        System.out.println("Bloque FOR");
+        int posET = polaca.desapilarSaltoPila();
+        polaca.addElement(String.valueOf(posET));
+
+        polaca.rellenarSaltosFalso(polaca.getPosicionActual());
     :};
 
-
-
-
+for_step ::= STEP expression {: /* El valor ya está en polaca por 'expression' */ :}
+           | {: polaca.addElement("1"); // Paso por defecto si no hay STEP :};
