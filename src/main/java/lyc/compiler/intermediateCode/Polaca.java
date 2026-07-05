@@ -187,6 +187,45 @@ public class Polaca {
         };
     }
 
+
+    // Extrae un rango de la polaca como lista (para capturar el cuerpo)
+    public List<String> extractRange(int desde, int hasta) {
+        List<String> body = new ArrayList<>(polaca.subList(desde, hasta));
+        polaca.subList(desde, hasta).clear();
+        return body;
+    }
+
+    // Inserta una lista de tokens en una posición
+    public void insertAt(int pos, List<String> tokens) {
+        polaca.addAll(pos, tokens);
+    }
+
+
+    public void injectBodyAfterEachAssignment(String varId, List<String> body, int desde) {
+        // Recorre desde 'desde' buscando patrones: [algo] [varId] [:=]
+        // y después de cada := inserta una copia del body
+        int i = desde;
+        while (i < polaca.size()) {
+            // Detectar patrón: posición i+1 es varId y i+2 es :=
+            if (i + 2 < polaca.size()
+                    && polaca.get(i + 1).equals(varId)
+                    && polaca.get(i + 2).equals(":=")) {
+                // Insertar copia del body después del :=
+                polaca.addAll(i + 3, new ArrayList<>(body));
+                // Saltar sobre lo que acabamos de insertar
+                i = i + 3 + body.size();
+            } else {
+                i++;
+            }
+        }
+    }
+
+    public void removeAt(int index) {
+        if (index >= 0 && index < polaca.size()) {
+            polaca.remove(index);
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

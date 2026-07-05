@@ -3,6 +3,7 @@ package lyc.compiler;
 import java_cup.runtime.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import lyc.compiler.simboleTable.SymbolTable;
@@ -20,6 +21,13 @@ Polaca polaca = Polaca.getInstance();
 boolean generandoCondicion = false;
 boolean rellenarVerdaderoPendiente = false;
 Stack<Integer> pilaSaltosAnd = new Stack<>();
+
+String idVarWhile="";
+List<String> whileInBody = new ArrayList<>();
+boolean esWhileIn = false;
+Integer whileInBodyStart =0;
+int whileInCuerpoStart = 0;
+
 
 private void semanticError(String msg){
   throw new RuntimeException("Semantic error: " + msg);
@@ -147,8 +155,8 @@ non terminal if_else_bridge;
 non terminal for_sentence;
 non terminal for_step;
 non terminal especial_condition_line;
+non terminal expression_item;
 non terminal expression_array;
-
 
 // Start Symbol Definition
 start with program;
@@ -278,7 +286,8 @@ term ::= term:t1 MULT factor:f1
         RESULT = t1; 
     :};
 term ::= term:t1 DIV factor:f1 
-    {: 
+    {:
+        System.out.println("=== DIV: t1=" + t1 + " f1=" + f1);
         if(!t1.toString().equals(f1.toString())) {
             semanticError("Tipos incompatibles en división: " + t1 + " / " + f1);
         }
@@ -529,36 +538,83 @@ sentence::=while_sentence  {: System.out.println("End WHILE"); :};
 
 
 while_sentence ::= WHILE {:
-        polaca.addElement("ET");
-        generandoCondicion = true;
+                polaca.addElement("ET");
+                generandoCondicion = true;
+                esWhileIn = false;
+                int posET = polaca.getPosicionActual() - 1; // posicion del ET recien agregado
+                polaca.apilarSaltoPila(posET);
+                System.out.println("Bloque WHILE");
 
-        int posSaltoIncondicional = polaca.getPosicionActual();
-        polaca.apilarSaltoPila(posSaltoIncondicional -1);
-        generandoCondicion = true;
-        System.out.println("Bloque WHILE");
         :}
     
     OPEN_BRACKET condition_or_especial CLOSE_BRACKET {:
-        generandoCondicion = false; :}
-        operation_line {:
-        polaca.addElement("BI");
-        int salidaWhile = polaca.getPosicionActual();
+        generandoCondicion = false;
+          System.out.println("=== FIN CONDICION, polaca hasta aca: " + polaca.toString());
+            System.out.println("=== whileInBodyStart: " + whileInBodyStart);
+            System.out.println("=== whileInCuerpoStart: " + whileInCuerpoStart);
+        :}
+    operation_line {:
 
-        polaca.rellenarSaltosFalso(salidaWhile);
+          if (esWhileIn) {
+                     int finPolaca = polaca.getPosicionActual();
 
-        int inicioDeCondicion = polaca.desapilarSaltoPila();
-        polaca.addElement(String.valueOf(inicioDeCondicion));
+                        // Extraer SOLO el cuerpo (desde whileInCuerpoStart hasta el final)
+                        whileInBody = polaca.extractRange(whileInCuerpoStart, finPolaca);
+
+                        // Las asignaciones siguen en la polaca desde whileInBodyStart
+                        // Inyectar el cuerpo después de cada asignación
+                        polaca.injectBodyAfterEachAssignment(idVarWhile, whileInBody, whileInBodyStart);
+
+                        // Eliminar el ET sobrante
+                        int posETSobrante = polaca.desapilarSaltoPila();
+                        polaca.removeAt(posETSobrante);
+
+                        esWhileIn = false;
+
+               } else {
+                   polaca.addElement("BI");
+                   int salidaWhile = polaca.getPosicionActual();
+                   polaca.rellenarSaltosFalso(salidaWhile);
+                   int inicioDeCondicion = polaca.desapilarSaltoPila();
+                   polaca.addElement(String.valueOf(inicioDeCondicion));
+               }
     :};
 
 // Resuelve la ambigüedad entre condition_line y especial_condition_line
 condition_or_especial ::= especial_condition_line
                         | condition_line
+
+
                         ;
-especial_condition_line ::= IDENTIFIER:id IN OPEN_ARRAY expression_array CLOSE_ARRAY {: System.out.println("condicion especial");
-                                                                                        String c = id.toString();
-                                                                                        symTable.insert(c,"","",true); :};
-expression_array ::= expression COMMA expression_array;
-expression_array ::= expression; 
+especial_condition_line ::= IDENTIFIER:id
+    IN OPEN_ARRAY
+    {:
+            String c = id.toString();
+            idVarWhile = c;
+            esWhileIn = true;
+            if (!symTable.exists(c)) symTable.insert(c, "INT", "", true);
+            // Marcar dónde empieza la zona de asignaciones
+            whileInBodyStart = polaca.getPosicionActual();
+            RESULT = c;
+        :}
+
+    expression_array CLOSE_ARRAY   {:
+                                         // Aquí las asignaciones ya están generadas
+                                         // Marcamos dónde empieza el cuerpo del while
+                                         whileInCuerpoStart = polaca.getPosicionActual();
+                                     :};
+
+expression_array ::= expression_item COMMA expression_array
+                   | expression_item
+                   ;
+
+expression_item ::= expression:val {:
+    // El valor ya está en la polaca (apilado por expression)
+               System.out.println("=== expr_array elemento tipo: " + val +
+                                  " polaca actual: " + polaca.getPosicionActual());
+    polaca.addElement(idVarWhile);
+    polaca.addElement(":=");
+:};
 
 //IF
 if_else_bridge ::= ELSE 
