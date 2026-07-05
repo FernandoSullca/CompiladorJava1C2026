@@ -53,7 +53,7 @@ public class AssemblerGenerator {
 
     // Cabeceras fijas del .asm
     private String generateHeader() {
-        return "include macros2.asm\n" +
+        return "include macros.asm\n" +
                 "include number.asm\n" +
                 ".MODEL LARGE\n"
                 + ".386\n"
@@ -110,7 +110,6 @@ public class AssemblerGenerator {
         for (String aux : auxVariables) {
             sb.append("    ").append(aux).append("    dd    ?\n");
         }
-        sb.append("    ").append("R1").append("    dd    ?\n"); // R1 Tipo int para calculos
         sb.append("\n");
         return sb.toString();
     }
@@ -147,6 +146,7 @@ public class AssemblerGenerator {
                 case "PRINT": {
                     String operand = stack.pop();
                     sb.append(generatePrint(operand));
+                    sb.append("    newLine 1\n");
                     break;
                 }
                 case "READ": {
@@ -159,38 +159,59 @@ public class AssemblerGenerator {
                 case "-":
                 case "*":
                 case "/": {
-                    String derecho = stack.pop();
-                    String izquierdo = stack.pop();
-                    String mnemonico = switch (token) {
-                        case "+" -> "ADD";
-                        case "-" -> "SUB";
-                        case "*" -> "MUL";
-                        case "/" -> "DIV";
-                        default -> throw new IllegalStateException();
-
-                    };
+                    // resolveName es necesario para constantes FLOAT/STRING: su texto
+                    // literal (ej "100.0") no es un inmediato valido para MOV/ADD/etc,
+                    // hay que referenciar la etiqueta de datos que las declara.
+                    String derecho = resolveName(stack.pop());
+                    String izquierdo = resolveName(stack.pop());
 
                     String aux = polaca.generateTemporal();
-                    sb.append("    MOV R1, ").append(izquierdo).append("\n");
-                    sb.append("    ").append(mnemonico).append(" R1, ").append(derecho).append("\n");
-                    sb.append("    MOV ").append(aux).append(", R1\n");
+                    // EAX/EBX son registros reales: MOV/ADD/SUB/CMP no admiten dos operandos
+                    // de memoria a la vez, y MUL/DIV son de un solo operando (EDX:EAX implicito).
+                    sb.append("    MOV EAX, ").append(izquierdo).append("\n");
+                    sb.append("    MOV EBX, ").append(derecho).append("\n");
+                    switch (token) {
+                        case "+" -> sb.append("    ADD EAX, EBX\n");
+                        case "-" -> sb.append("    SUB EAX, EBX\n");
+                        case "*" -> sb.append("    MUL EBX\n");
+                        case "/" -> sb.append("    XOR EDX, EDX\n").append("    DIV EBX\n");
+                        default -> throw new IllegalStateException();
+                    }
+                    sb.append("    MOV ").append(aux).append(", EAX\n");
                     auxVariables.add(aux);
                     stack.push(aux);
                     break;
                 }
 
                 case ":=": {
-                    String destino = stack.pop();
-                    String valor = stack.pop();
-                    sb.append("    MOV ").append(destino).append(", ").append(valor).append("\n");
+                    String destinoToken = stack.pop();
+                    String valorToken = stack.pop();
+                    String destino = resolveName(destinoToken);
+                    String valor = resolveName(valorToken);
+
+                    if ("STRING".equalsIgnoreCase(resolveType(destinoToken))) {
+                        // Un string es un buffer de bytes: copiarlo requiere recorrerlo
+                        // (STRCPY), no una unica instruccion MOV de 32 bits.
+                        sb.append("    LEA SI, ").append(valor).append("\n");
+                        sb.append("    LEA DI, ").append(destino).append("\n");
+                        sb.append("    STRCPY\n");
+                    } else {
+                        // Pasar por un registro evita MOV memoria,memoria cuando el valor
+                        // asignado es otra variable (invalido en x86).
+                        sb.append("    MOV EAX, ").append(valor).append("\n");
+                        sb.append("    MOV ").append(destino).append(", EAX\n");
+                    }
                     break;
                 }
 
                 case "CMP": {
-                    String derecho = stack.pop();
-                    String izquierdo = stack.pop();
-                    sb.append("    MOV R1, ").append(izquierdo).append("\n");
-                    sb.append("    CMP R1, ").append(derecho).append("\n");
+                    // Mismo motivo que en +,-,*,/: una constante FLOAT/STRING no puede
+                    // usarse como inmediato, hay que resolverla a su label de datos.
+                    String derecho = resolveName(stack.pop());
+                    String izquierdo = resolveName(stack.pop());
+                    sb.append("    MOV EAX, ").append(izquierdo).append("\n");
+                    sb.append("    MOV EBX, ").append(derecho).append("\n");
+                    sb.append("    CMP EAX, EBX\n");
                     break;
                 }
 
@@ -285,6 +306,10 @@ public class AssemblerGenerator {
         if (symbolTable.exists("_" + token)) {
             return "_" + token;
         }
+        String constName = symbolTable.getConstantName(token);
+        if (constName != null) {
+            return constName;
+        }
         return token; // fallback, no deberia pasar
     }
 
@@ -302,7 +327,7 @@ public class AssemblerGenerator {
         switch (type.toUpperCase()) {
             case "STRING":
             case "CTE_STRING":
-                return "    displayString \"" + name + "\"\n";
+                return "    displayString " + name + "\n";
             case "INT":
             case "CTE_INT":
                 return "    DisplayInteger " + name + "\n";
