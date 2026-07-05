@@ -96,8 +96,8 @@ if (contador > limite)
 #+ --- WHILE CON CONDICION CLASICA --- +#
 while (contador > limite)
 {
-    print("contador mayor que limite")
-    contador = contador + 1
+   print("contador mayor que limite")
+   limite=limite+1
 }
 
 #+ --- WHILE ESPECIAL IN [ ... ] --- +#
@@ -149,7 +149,6 @@ while(a < b AND c >d)
     print(" Mientras A menor B Y C mayor a D")
     a=b
     c=2
-    d=0
 }
 
 
