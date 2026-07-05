@@ -175,7 +175,10 @@ Next = "NEXT"
   {FloatConstant}                          { 
         String value = yytext();
             try {
-        float floatValue = Float.parseFloat(value);
+        // Double, no float: en float, la precision cerca de 2^31 es de ~256 unidades,
+        // asi que un valor como 2147483650.0 redondea a 2147483648.0 (=MAX_FLOAT) y el
+        // chequeo de rango no lo detecta como invalido.
+        double floatValue = Double.parseDouble(value);
         if (floatValue > MAX_FLOAT ) {
             throw new InvalidLengthException("La variable FLOAT "+value +" supera lo permitido.");
         }
