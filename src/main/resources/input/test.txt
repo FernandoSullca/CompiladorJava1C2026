@@ -1,176 +1,202 @@
-#+ TEST PARA VER GUARDADO MIXTO EN TABLA DE SIMBOLOS +#
-#+ Objetivo: NO declarar todo en init para verificar altas por uso +#
+#+ TEST INTERACTIVO - Cubre todas las operaciones soportadas por el compilador +#
+#+ El programa le pide datos al usuario por teclado (Int y Float) y reacciona +#
+#+ segun esos valores. Al final hay bloques comentados que documentan casos +#
+#+ que deberian fallar (quedan comentados para no romper esta compilacion). +#
 
 init {
-    contador,limite,paso,contador4,a,b,c,d : Int
-    mensaje : String
-    #+ identificadorQueSuperaCuarentaCaracteresFalla : String +# 
-    #+ En caso de descomentar linea 7 falla por longiut del identificador +# 
-    mensaje2 : Int #+ --- 'mensaje' Lanzar Error de "re-declaracion" EN INIT --- +#
-    precio , volumen: Float
-    resultado :Int #+ --- en caso de eliminar/comentar salta excepcion personalizada para pedir su decllaracion en caso de no poder inferir. EJ:textoSalida, pesoInferido" EN INIT --- +#
-    puntoflotante1 : Float
-    puntoflotante2 : Float
-    puntoflotante3 : Float
-    puntoflotante4 : Float
+    edad, limite, contador, opcion, iterador, valorCalculado, a, b, c, d : Int
+    precio, cantidad, descuento : Float
+    nombre : String
 }
 
-#+ --- DECLARADAS EN INIT --- +#
-contador = 1
-limite = 3
-mensaje = "LIT INICIO"
-print(mensaje)
-puntoflotante1 = 9999.99 
-puntoflotante2 = 99.
-puntoflotante3 = .9999
-contadorNegativo = -10
-puntoflotanteNegativo = -.9999
+#+ --- STRING: asignacion y print --- +#
+nombre = "Validador interactivo"
+print(nombre)
 
-contador4 = 32767 #+ En caso de 32768 falla por tamaño del integer (16 bits)+# 
-puntoflotante4 = 65504.0 #+ En caso de 65505 falla por tamaño del float (16 bits)+# 
+#+ --- READ INTERACTIVO: Int --- +#
+print("Ingrese su edad:")
+read(edad)
+print("Edad ingresada:")
+print(edad)
 
-#+ --- NO DECLARADAS (deben aparecer por uso/asignacion) --- +#
-resultado = 21 / 4
-resultado = 27 - resultado
-resultado = 34 * 3
-textoSalida = "LIT STR ASIGN"
-pesoInferido = 35
-
-
-#+ --- IF --- +#
-if (contador > limite)
-{
-    print("LIT_IF_MAYOR SIN ELSE")
-}
-
-if(NOT pesoInferido > 35)
-{
-    print("Peso inferido menor de 35")
-}
-
-if(NOT pesoInferido == 35)
-{
-    print("Peso inferido diferente de 35")
-}
-
-if(NOT pesoInferido < 35)
-{
-    print("Peso inferido mayor de 35")
-}
-
-
-#+ --- IF / ELSE --- +#
-if (contador > limite)
-{
-    print("LIT_IF_MAYOR")
-}
-else
-{
-    print("LIT_IF_MENOR_IGUAL")
-}
-
-
-#+ --- IF ANIDADO CON ELSE --- +#
-if (contador > limite)
-{
-    print("LIT_IF_MAYOR")
-}
-else if (contador + 1 > limite)
-{
-    print("IF anidado")
-}
-else
-{
-    print("else del IF anidado")
-}
-#+ --- IF ANIDADO DENTRO DE OTRO IF --- +#
-if (contador > limite)
-{
-    if (contador + 2 > limite)
-    {
-        print("LIT_IF_MAYOR + 2")
-    }
-    print("LIT_IF_MAYOR")
-}
-
-#+ --- WHILE CON CONDICION CLASICA --- +#
-while (contador > limite)
-{
-   print("contador mayor que limite")
-   limite=limite+1
-}
-
-#+ --- WHILE ESPECIAL IN [ ... ] --- +#
-
-while (itemListaA in [1,2,3])
-{
-   print(itemListaA)
-}
-
-while (itemListaB in [1+1,2*2,3/3])
-{
-   print(itemListaB)
-}
-
-#+ --- READ --- +#
+print("Ingrese el limite para los bucles:")
 read(limite)
 
-#+ --- FOR (variables por uso) --- +#
-FOR ifor = 1 TO 10 STEP 2
-   print(ifor)
-NEXT ifor
+#+ --- READ INTERACTIVO: Float --- +#
+print("Ingrese el precio unitario:")
+read(precio)
 
-FOR ifor2 = 1 TO 5
-   print(ifor2)
-NEXT ifor2 
+print("Ingrese la cantidad (admite decimales):")
+read(cantidad)
 
-#+ --- CONDICIONALES --- +#
+print("Ingrese el descuento:")
+read(descuento)
 
-if (a > b)
+#+ --- ARITMETICA: +, -, *, / (mismo tipo a ambos lados) --- +#
+total = precio * cantidad
+total = total - descuento
+print(total)
+
+resultado = edad + limite
+resultado = resultado - contador
+resultado = resultado * 2
+resultado = resultado / 2
+print(resultado)
+
+#+ --- CONSTANTES NEGATIVAS --- +#
+contadorNegativo = -10
+descuentoNegativo = -0.5
+print(contadorNegativo)
+print(descuentoNegativo)
+
+#+ --- COMPARACIONES: >, >=, <, <=, ==, != --- +#
+if (edad >= 18)
 {
-    print(" A mayor a B")
+    print("Es mayor de edad")
 }
+else
+{
+    print("Es menor de edad")
+}
+
+if (precio > 100.0)
+{
+    print("Precio alto")
+}
+else if (precio == 100.0)
+{
+    print("Precio exacto")
+}
+else
+{
+    print("Precio bajo")
+}
+
+if (edad != limite)
+{
+    print("Edad y limite son distintos")
+}
+
+if (edad <= limite)
+{
+    print("Edad menor o igual al limite")
+}
+
+#+ --- IF ANIDADO --- +#
+if (edad >= 18)
+{
+    if (precio > 0.0)
+    {
+        print("Mayor de edad con precio valido")
+    }
+}
+
+#+ --- READ INTERACTIVO PARA NOT / AND / OR --- +#
+print("Ingrese valor para A:")
+read(a)
+print("Ingrese valor para B:")
+read(b)
+print("Ingrese valor para C:")
+read(c)
+print("Ingrese valor para D:")
+read(d)
 
 if (a > b AND c > d)
 {
-    print(" A mayor a B Y C mayor a D")
+    print("A mayor a B Y C mayor a D")
 }
-
 
 if (a > b OR c > d)
 {
-    print(" A mayor a B O C mayor a D")
+    print("A mayor a B O C mayor a D")
 }
 
-
-
-while(a < b AND c >d)
+if (NOT (a > b))
 {
-    print(" Mientras A menor B Y C mayor a D")
-    a=b
-    c=2
+    print("A no es mayor a B")
 }
 
+#+ --- WHILE CLASICO (usa el limite ingresado por teclado) --- +#
+contador = limite
+print("Comienzo de Ciclo WHILE Clasico:")
+while (contador > 0)
+{
+    print(contador)
+    contador = contador - 1
+}
 
-#+ --- READ Y PRINT - ERROR VARIABLE NO DECLARADA --- +#
-#+ read(variableInexistente) +#
-#+ print(variableInexistente) +#
+#+ --- WHILE ESPECIAL IN [ ... ] --- +#
+print("Comienzo de Ciclo WHILE especial simple:")
+while (opcion in [1, 2, 3])
+{
+    print(opcion)
+}
 
-#+ --- CASOS PARA PROBAR ERROR SEMÁNTICO EN ASIGNACION (id con id) --- +#
-#+ precio = contador +#  #+ Debería fallar: FLOAT = INT +#
-#+ contador = precio +#  #+ Debería fallar: INT = FLOAT +#
-#+ mensaje = contador +# #+ Debería fallar: STRING = INT +#
+print("Comienzo de Ciclo WHILE especial con operaciones:")
+while (valorCalculado in [1+1, 2*2, 6-2])
+{
+    print(valorCalculado)
+}
 
-#+ --- CASOS PARA PROBAR ERROR SEMÁNTICO EN ASIGNACION (id con cte) --- +#
-#+ precio = "contador" +#  #+ Debería fallar: FLOAT = STRING +#
-#+ precio = 10 +#  #+ Debería fallar: FLOAT = INT +#
-#+ mensaje = 10 +# #+ Debería fallar: STRING = INT +#
+#+ --- FOR ... TO ... STEP ... NEXT (usa el limite ingresado) --- +#
+print("Inicio de ciclo FOR desde 1 a Limite ingresado:")
+FOR iterador = 1 TO limite STEP 1
+    print(iterador)
+NEXT iterador
 
-#+ --- CASOS PARA PROBAR Validación de ID no declarada pero usada --- +#
-#+ if (NOT e){    print(" Not E")} +#
+#+ --- WHILE COMPUESTO CON REASIGNACION (usa A, B, C, D ingresados) --- +#
+while (a < b AND c > d)
+{
+    print("Mientras A menor a B Y C mayor a D")
+    a = b
+    c = 2
+}
 
-#+ --- CASOS PARA PROBAR Validación de igual tipo en condiciones --- +#
-#+if( mensaje> contador){    print("esta mal la validacion de igual tipo en condiciones")}+#
+print("Fin del programa interactivo")
 
-#+ --- CASOS PARA PROBAR Validación de igual tipo en FOR --- +#
-#+ FOR precio = 1 TO 5   print(i)NEXT i +#
+
+#+ ============================================================== +#
+#+ CASOS COMENTADOS: documentan errores que el compilador debe    +#
+#+ detectar. Se dejan comentados para que este archivo compile.   +#
+#+ ============================================================== +#
+
+#+ --- Redeclaracion de una variable ya declarada en init --- +#
+#+ --- init { edad : Float } --- +#
+
+#+ --- Cadena que supera los 64 caracteres permitidos --- +#
+#+ --- print("identificadorQueSuperaSesentaYCuatroCaracteresPermitidosPorElLexe")--- +#
+
+#+ --- Asignacion con tipos incompatibles (id = id) --- +#
+#+ precio = edad +#  #+ Deberia fallar: FLOAT = INT +#
+#+ edad = precio +#  #+ Deberia fallar: INT = FLOAT +#
+#+ nombre = edad +# #+ Deberia fallar: STRING = INT +#
+
+#+ --- Asignacion con tipos incompatibles (id = constante) --- +#
+#+ precio = 10 +#  #+ Deberia fallar: FLOAT = INT +#
+#+ edad = 10.5 +#  #+ Deberia fallar: INT = FLOAT +#
+#+ nombre = 10 +# #+ Deberia fallar: STRING = INT +#
+
+#+ --- Operacion aritmetica entre tipos distintos --- +#
+#+ resultado = edad + precio +# #+ Deberia fallar: INT + FLOAT +#
+#+ resultado = edad * precio +# #+ Deberia fallar: INT * FLOAT +#
+
+#+ --- Comparacion entre tipos distintos --- +#
+#+ if (edad > precio){ print(nombre) } +# #+ Deberia fallar: INT vs FLOAT +#
+
+#+ --- Uso de variable no declarada --- +#
+#+ print(variableInexistente) +# #+ Deberia fallar: no declarada +#
+#+ read(variableInexistente) +# #+ Deberia fallar: no declarada +#
+#+ if (variableInexistente > 1){ print(edad) } +# #+ Deberia fallar: no declarada +#
+
+#+ --- FOR con variable de NEXT distinta a la del FOR --- +#
+#+ FOR contador = 1 TO 5 print(contador) NEXT limite +# #+ Deberia fallar: NEXT no coincide con FOR +#
+
+#+ --- Limites de rango INT (16 bits): -32768 a 32767 --- +#
+#+ desbordeInt = 32768 +# #+ Deberia fallar: supera MAX_INT +#
+#+ desbordeIntNeg = -32769 +# #+ Deberia fallar: inferior a MIN_INT +#
+
+#+ --- Limites de rango FLOAT: -2147483648.0 a 2147483648.0 --- +#
+#+desbordeFloat = 2147483650.0 +# #+ Deberia fallar: supera MAX_FLOAT +#
+
+#+ --- Longitud de identificador mayor a 64 caracteres --- +#
+#+ nombrequesuperalossesentaycuatrocaracteresparalaasignaciondealgogrande = "Esta cadena de texto ejemplo" +# #+ Deberia fallar: supera MAX_LENGTH +#
