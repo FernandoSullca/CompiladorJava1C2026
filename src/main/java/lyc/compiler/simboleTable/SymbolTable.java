@@ -9,10 +9,18 @@ public class SymbolTable {
 
     private static SymbolTable symt;
     private LinkedHashMap<String, Symbol_lyc> table;
+    // El texto literal de una constante (STRING, INT o FLOAT) puede tener espacios,
+    // puntos o signos invalidos para un identificador de TASM (ej: "Peso inferido",
+    // "9999.99", "-10"), asi que a cada literal se le asigna un nombre generado
+    // (_CTE0, _CTE1, ...) en vez de usar el propio texto como label.
+    private LinkedHashMap<String, String> constantNames;
+    private int constantCounter;
 
     private SymbolTable() {
         // LinkedHashMap mantiene el orden de insercion, util para depurar la salida.
         table = new LinkedHashMap<>();
+        constantNames = new LinkedHashMap<>();
+        constantCounter = 0;
     }
 
     public static SymbolTable getSymbolTable(){
@@ -24,11 +32,24 @@ public class SymbolTable {
 
     public void insert(String name,String type, String value, boolean isID){
         if(!isID){
-            //constantes empiezan con _ para diferenciar de las IDs
-            name = "_" + name;
+            // El texto literal (name) puede tener espacios, puntos o signos invalidos
+            // para un label de TASM: se reemplaza por un nombre generado, reutilizando
+            // el mismo si el literal ya fue declarado antes.
+            String generated = constantNames.get(name);
+            if (generated == null) {
+                generated = "_CTE" + (constantCounter++);
+                constantNames.put(name, generated);
+            }
+            name = generated;
             type = "CTE_" + type;
         }
         table.put(name,new Symbol_lyc(name,value,type));
+    }
+
+    // Dado el texto literal original de una constante, devuelve el nombre de label
+    // generado para ella (o null si no fue declarada como tal).
+    public String getConstantName(String literalValue) {
+        return constantNames.get(literalValue);
     }
 
     public Symbol_lyc get(String name){
