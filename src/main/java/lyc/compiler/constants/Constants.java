@@ -2,7 +2,7 @@ package lyc.compiler.constants;
 
 public final class Constants {
 
-    public static final int MAX_LENGTH = 128; //MAXIMO DE CARACTERES DE STRING
+    public static final int MAX_LENGTH = 64; //MAXIMO DE CARACTERES DE STRING
     // Int (16 bits): Rango con signo
     public static final int MAX_INT = 32767;
 
